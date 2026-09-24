@@ -244,6 +244,15 @@ export class WorkspaceActions extends Component {
       await this.refresh();
       this.showToast("The data point form link has been revoked.");
     });
+  savePointIntakeQuestions = (code, questions) =>
+    this.request(async () => {
+      await api(`${this.projectPath()}/points/${encodeURIComponent(code)}/intake-questions`, {
+        method: "PUT",
+        body: { questions },
+      });
+      await this.refresh();
+      this.showToast("AI question list saved. Active links now use these questions.");
+    });
   sendMessage = () => this.sendThread("member", "message");
   sendAssistantMessage = () => this.sendThread("assistant", "assistantMessage");
   sendThread = (thread, field) =>

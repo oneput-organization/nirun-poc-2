@@ -86,11 +86,21 @@
 .responseFiles { display: grid; gap: 5px; margin-top: 8px; }
 .responseFiles a { color: #2f4bff; font-size: 11px; }
 .questionPreview { margin-top: 13px; padding: 11px 12px; border-radius: 6px; background: #f7f7f5; }
-.questionPreview summary { color: #3d4dd4; font-size: 11px; font-weight: 600; cursor: pointer; }
-.questionPreview ol { display: grid; gap: 10px; margin: 12px 0; padding-left: 20px; }
-.questionPreview li { padding-left: 3px; font-size: 11px; }
-.questionPreview li strong { display: block; font-weight: 600; }
-.questionPreview li small, .questionPreview > p { display: block; margin: 3px 0 0; color: #6b6b66; font-size: 10px; line-height: 1.5; }
+.questionHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.questionHead strong { font-size: 11px; }
+.questionHead span { color: #9c9c96; font-size: 10px; }
+.questionPreview > p { margin: 4px 0 10px; color: #6b6b66; font-size: 10px; line-height: 1.5; }
+.questionEditor { display: grid; gap: 8px; }
+.questionEdit { display: grid; gap: 8px; padding: 10px; border: 1px solid #e6e6e3; border-radius: 6px; background: white; }
+.questionEditHead { display: flex; align-items: center; justify-content: space-between; }
+.questionEditHead strong { font-size: 10px; }
+.questionEdit > label { display: grid; gap: 4px; color: #6b6b66; font-size: 10px; }
+.questionEdit input:not([type="checkbox"]), .questionEdit textarea { width: 100%; box-sizing: border-box; padding: 7px 8px; border: 1px solid #d5d5d1; border-radius: 5px; background: #fff; color: #1f1f1e; font-family: inherit; font-size: 11px; }
+.questionEdit textarea { resize: vertical; }
+.questionEdit .requiredToggle { display: flex; align-items: center; gap: 6px; font-size: 10px; }
+.requiredToggle input { accent-color: #2f4bff; }
+.questionActions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
+.questionUnsaved { display: block; margin-top: 7px; color: #a93b31; font-size: 10px; }
 .timeline { display: grid; gap: 11px; margin: 13px 0 0; padding: 0; list-style: none; }
 .timeline li { padding-left: 11px; border-left: 2px solid #d5d5d1; }
 .timeline strong { display: block; font-size: 11px; }

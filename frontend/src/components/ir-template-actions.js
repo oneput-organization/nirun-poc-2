@@ -27,6 +27,8 @@ export class IrTemplateActions extends WorkspaceActions {
     });
   }
 
+  saveIrGlossary = (glossary) => this.updateIrReport({ glossary });
+
   updateIrChapter(chapterId, update) {
     this.updateIrReport((report) => {
       const current = report.chapters?.[chapterId] || emptyIrChapter();
@@ -189,6 +191,28 @@ export class IrTemplateActions extends WorkspaceActions {
       reviewChecks: {},
       changes: [entry("FP returned the draft to the owner; CSSM informed (mock)", reason.trim()), ...(chapter.changes || [])],
     }));
+  };
+
+  requestIrReopen = (chapterId, reason) => {
+    if (!reason.trim()) {
+      this.showToast("Tell the focal point what needs to be edited.");
+      return;
+    }
+    this.updateIrChapter(chapterId, (chapter) => ({
+      status: "reopen_requested",
+      reopenReason: reason.trim(),
+      changes: [entry("Owner requested post-submit edit; CSSM informed (mock)", reason.trim()), ...(chapter.changes || [])],
+    }));
+    this.showToast("Reopen request recorded for focal point approval.");
+  };
+
+  approveIrReopen = (chapterId) => {
+    this.updateIrChapter(chapterId, (chapter) => ({
+      status: "changes_requested",
+      reviewChecks: {},
+      changes: [entry("Focal point reopened the submitted chapter"), ...(chapter.changes || [])],
+    }));
+    this.showToast("Chapter reopened for editing; the owner can revise and resubmit.");
   };
 
   submitIrForVp = (chapterId) => {

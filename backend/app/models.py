@@ -39,3 +39,12 @@ class NewPointInput(BaseModel):
     owner: str = Field(min_length=1, max_length=160)
     due: str = Field(min_length=1, max_length=30)
     section: Literal["Finance", "Operations", "Ventures", "People", "Governance", "Narrative"] = "Operations"
+
+class IntakeQuestionInput(BaseModel):
+    id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,64}$")
+    label: str = Field(min_length=1, max_length=240)
+    help: str = Field(default="", max_length=600)
+    required: bool = False
+
+class IntakeQuestionsInput(BaseModel):
+    questions: list[IntakeQuestionInput] = Field(min_length=1, max_length=12)

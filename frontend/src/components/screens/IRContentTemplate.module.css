@@ -214,11 +214,32 @@
 .mappingBlock a { padding: 5px 8px; border-radius: 4px; background: #ebeeff; color: #2f4bff; font-size: 10px; text-decoration: none; }
 .mappingBlock a:hover { text-decoration: underline; }
 .contentFields { display: grid; gap: 15px; margin-top: 16px; }
+.aiAssist { display: grid; gap: 9px; margin-top: 14px; padding: 12px; border: 1px solid #d9defe; border-radius: 6px; background: #f7f8ff; }
+.aiAssist > div { display: grid; gap: 3px; }
+.aiAssist strong { font-size: 12px; }
+.aiAssist small { color: #6b6b66; font-size: 10px; line-height: 15px; }
+.aiAssist pre { max-height: 240px; overflow: auto; margin: 0; padding: 10px; border-radius: 4px; background: white; white-space: pre-wrap; font: 11px/1.6 inherit; }
+.aiAssist button { justify-self: start; }
+.aiPolish { display: grid; gap: 7px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #e9e9e6; }
+.aiPolish pre { margin: 0; padding: 10px; border-radius: 5px; background: #f7f7f5; color: #4c4c48; white-space: pre-wrap; font: 11px/1.6 inherit; }
 .reviewList { margin-top: 15px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .reviewActions { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 15px; }
 .reviewActions > div { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; flex: 1; }
 .reviewActions label { width: 100%; }
 .reviewActions input { flex: 1; min-width: 170px; }
+.reopenRequest { display: grid; gap: 7px; margin-top: 15px; padding: 12px; border: 1px solid #e9e9e6; border-radius: 6px; }
+.reopenRequest > label, .reopenRequest > strong { font-size: 11px; }
+.reopenRequest > p { margin: 0; color: #6b6b66; font-size: 11px; line-height: 17px; }
+.reopenRequest > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.reopenRequest input { flex: 1; min-width: 180px; padding: 8px 9px; border: 1px solid #d5d5d1; border-radius: 5px; font: 11px inherit; }
+.glossaryForm { display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 8px; margin-top: 15px; }
+.glossaryForm label { display: grid; gap: 5px; font-size: 10px; font-weight: 600; }
+.glossaryForm input { min-width: 0; padding: 8px; border: 1px solid #d5d5d1; border-radius: 5px; font: 11px inherit; }
+.glossaryList { display: grid; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; }
+.glossaryList li { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 5px; background: #fafaf8; font-size: 11px; }
+.glossaryList li > span { color: #6b6b66; }
+.glossaryList li > b { color: #9c9c96; }
+.glossaryList li > strong { font-weight: 600; }
 .handoffNote { margin: 15px 0 0; padding: 10px 12px; border-radius: 6px; background: #e7f3ec; color: #1f6f4e; font-size: 12px; }
 .history { display: grid; gap: 12px; margin: 14px 0 0; padding: 0; list-style: none; }
 .history li { border-left: 2px solid #d5d5d1; padding-left: 12px; }
@@ -238,6 +259,7 @@
   .setupGrid { grid-template-columns: 1fr; }
   .sourcePack { border-left: 0; border-top: 1px solid #e9e9e6; padding: 16px 0 0; }
 }
+@media (max-width: 650px) { .glossaryForm { grid-template-columns: 1fr; } }
 @media (max-width: 800px) {
   .container { padding: 16px 14px 40px; }
   .hero { align-items: flex-start; flex-direction: column; }

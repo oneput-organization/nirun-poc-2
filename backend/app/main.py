@@ -16,7 +16,7 @@ from botocore.exceptions import BotoCoreError, ClientError
 from . import database as db
 from . import object_store
 from .auth import admin, session
-from .models import SessionInput, ProjectInput, PointInput, MemberInput, MessageInput, ActionInput, ExportInput, NewPointInput
+from .models import SessionInput, ProjectInput, PointInput, MemberInput, MessageInput, ActionInput, ExportInput, NewPointInput, IntakeQuestionsInput
 from .exports import generate
 from .seed_exports import initialize_exports
 from .intake import questions_for_point, summarize_answers
@@ -72,8 +72,13 @@ def workspace(project_id: str = "fy2025", user=Depends(session)):
     if user["role"] != "admin":
         forms = [{key: value for key, value in form.items() if key != "token"} for form in forms]
     points = db.all_docs("points", project_id)
+    question_sets = {item["code"]: item["questions"] for item in db.all_docs("point_question_sets", project_id)}
+    forms_by_code = {item["code"]: item for item in forms}
     return {"role": user["role"], "projects": db.all_docs("projects"),
-            "points": points, "pointIntakeQuestions": {point["code"]: questions_for_point(point) for point in points},
+            "points": points, "pointIntakeQuestions": {
+                point["code"]: question_sets.get(point["code"], forms_by_code.get(point["code"], {}).get("questions") or questions_for_point(point))
+                for point in points
+            },
             "members": db.all_docs("members", project_id),
             "queue": db.all_docs("queue", project_id), "messages": db.all_docs("messages", project_id),
             "exports": db.all_docs("exports", project_id), "uploads": db.all_docs("uploads", project_id),
@@ -87,9 +92,12 @@ def create_intake_link(project_id: str, code: str, user=Depends(admin)):
     writable(project_id)
     point_key = f"{project_id}:{code}"
     point = required("points", point_key)
+    questions = (db.get("point_question_sets", point_key) or {}).get("questions") or questions_for_point(point)
     form_key = point_key
     form = db.get("point_forms", form_key) or {}
     if form.get("active") and form.get("token"):
+        form["questions"] = questions
+        db.put("point_forms", form_key, form)
         return {"token": form["token"], "active": True, "createdAt": form["createdAt"]}
 
     token = secrets.token_urlsafe(32)
@@ -100,13 +108,34 @@ def create_intake_link(project_id: str, code: str, user=Depends(admin)):
         "code": code,
         "active": True,
         "token": token,
-        "questions": questions_for_point(point),
+        "questions": questions,
         "createdAt": created_at,
     }
     db.put("point_forms", form_key, form)
     db.put("intake_links", token, {"form_key": form_key, "active": True, "project_id": project_id})
     log(project_id, "intake_link_created", code=code, by=user["role"])
     return {"token": token, "active": True, "createdAt": created_at}
+
+
+@app.put("/api/projects/{project_id}/points/{code}/intake-questions")
+def save_intake_questions(project_id: str, code: str, body: IntakeQuestionsInput, user=Depends(admin)):
+    writable(project_id)
+    point_key = f"{project_id}:{code}"
+    required("points", point_key)
+    questions = [question.model_dump() for question in body.questions]
+    ids = [question["id"] for question in questions]
+    if len(set(ids)) != len(ids) or not any(question["required"] for question in questions):
+        raise HTTPException(422, "Question IDs must be unique and at least one question must be required.")
+    if any(not question["label"].strip() for question in questions):
+        raise HTTPException(422, "Every question needs a prompt.")
+    saved = {"project_id": project_id, "code": code, "questions": questions, "updatedAt": now(), "updatedBy": user["role"]}
+    db.put("point_question_sets", point_key, saved)
+    form = db.get("point_forms", point_key)
+    if form:
+        form["questions"] = questions
+        db.put("point_forms", point_key, form)
+    log(project_id, "intake_questions_updated", code=code, count=len(questions), by=user["role"])
+    return saved
 
 
 @app.delete("/api/projects/{project_id}/points/{code}/intake-link")

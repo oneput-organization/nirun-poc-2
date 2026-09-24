@@ -46,6 +46,7 @@ export function DataPoint() {
     setPointStatus,
     suggestedMappings,
     revokePointIntakeLink,
+    savePointIntakeQuestions,
   } = useWorkspace();
   const [answer, setAnswer] = useState("");
   const [files, setFiles] = useState([]);
@@ -56,8 +57,10 @@ export function DataPoint() {
   const [intakeToken, setIntakeToken] = useState("");
   const [origin, setOrigin] = useState("");
   const [linkCopied, setLinkCopied] = useState(false);
+  const [questionDraft, setQuestionDraft] = useState(pointIntakeQuestions || []);
 
   useEffect(() => setOrigin(window.location.origin), []);
+  useEffect(() => setQuestionDraft(pointIntakeQuestions || []), [point?.code, pointIntakeQuestions]);
 
   if (!isDataPoint) return null;
   if (!point) {
@@ -73,6 +76,7 @@ export function DataPoint() {
   const contributions = demo.contributions || [];
   const intakeLinkToken = pointIntakeForm?.active ? pointIntakeForm.token : intakeToken;
   const intakeLink = intakeLinkToken && origin ? `${origin}/intake/${encodeURIComponent(intakeLinkToken)}` : "";
+  const questionDirty = JSON.stringify(questionDraft) !== JSON.stringify(pointIntakeQuestions || []);
   const addedMappings = demo.mappings || [];
   const activity = [
     ...(demo.events || []),
@@ -127,6 +131,18 @@ export function DataPoint() {
   async function revokeShareLink() {
     await revokePointIntakeLink(point.code);
     setIntakeToken("");
+  }
+
+  function editQuestion(id, patch) {
+    setQuestionDraft((previous) => previous.map((question) => question.id === id ? { ...question, ...patch } : question));
+  }
+
+  function addQuestion() {
+    setQuestionDraft((previous) => [...previous, { id: `custom-${crypto.randomUUID()}`, label: "", help: "", required: false }]);
+  }
+
+  function removeQuestion(id) {
+    setQuestionDraft((previous) => previous.filter((question) => question.id !== id));
   }
 
   return (
@@ -204,13 +220,23 @@ export function DataPoint() {
             <button type="button" className={styles.textButton} onClick={revokeShareLink} disabled={isClosedPeriod}>Revoke</button>
           </div> : <div className={styles.shareControls}>
             {pointIntakeForm && !pointIntakeForm.active ? <span className={styles.revoked}>Previous link revoked</span> : null}
-            <button type="button" className={styles.primaryButton} onClick={makeShareLink} disabled={isClosedPeriod}>Create shareable form</button>
+            <button type="button" className={styles.primaryButton} onClick={makeShareLink} disabled={isClosedPeriod || questionDirty}>Create shareable form</button>
           </div>}
-          <details className={styles.questionPreview}>
-            <summary>Preview {pointIntakeQuestions.length} AI suggested questions</summary>
-            <ol>{pointIntakeQuestions.map((question) => <li key={question.id}><strong>{question.label}{question.required ? " · Required" : ""}</strong><small>{question.help}</small></li>)}</ol>
-            <p>The mock question set is tailored to this point's type and code. Owners can still add context in the form.</p>
-          </details>
+          <div className={styles.questionPreview}>
+            <div className={styles.questionHead}><strong>Edit AI suggested questions</strong><span>{questionDraft.length} / 12</span></div>
+            <p>The prompts are tailored to this point. Edit the wording, add or remove questions, and mark the answer that is required.</p>
+            <div className={styles.questionEditor}>{questionDraft.map((question, index) => <article className={styles.questionEdit} key={question.id}>
+              <div className={styles.questionEditHead}><strong>Question {index + 1}</strong><button type="button" className={styles.textButton} onClick={() => removeQuestion(question.id)} disabled={questionDraft.length <= 1}>Remove</button></div>
+              <label>Question<input value={question.label} maxLength={240} onChange={(event) => editQuestion(question.id, { label: event.target.value })} placeholder="Write the question for the data owner" /></label>
+              <label>Guidance<textarea value={question.help || ""} maxLength={600} rows={2} onChange={(event) => editQuestion(question.id, { help: event.target.value })} placeholder="Add examples or explain what to include" /></label>
+              <label className={styles.requiredToggle}><input type="checkbox" checked={!!question.required} onChange={(event) => editQuestion(question.id, { required: event.target.checked })} /> Required answer</label>
+            </article>)}</div>
+            <div className={styles.questionActions}>
+              <button type="button" className={styles.textButton} onClick={addQuestion} disabled={questionDraft.length >= 12}>+ Add question</button>
+              <button type="button" className={styles.secondaryButton} onClick={() => savePointIntakeQuestions(point.code, questionDraft)} disabled={!questionDirty || isClosedPeriod || questionDraft.some((question) => !question.label.trim()) || !questionDraft.some((question) => question.required)}>Save questions</button>
+            </div>
+            {questionDirty ? <small className={styles.questionUnsaved}>Save your edits before creating or sharing the link.</small> : null}
+          </div>
           <p className={styles.finePrint}>The link opens without sign-in. Responses and uploaded files are saved to this report. Revoke access here at any time.</p>
         </section> : null}
 
