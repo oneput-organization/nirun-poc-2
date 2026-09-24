@@ -1,0 +1,31 @@
+.page { min-height: 100dvh; background: #f7f7f5; color: #1f1f1e; }
+.brand { display: flex; align-items: center; justify-content: space-between; height: 58px; padding: 0 28px; border-bottom: 1px solid #e6e6e3; background: #fff; color: #777770; font-size: 11px; }
+.brand img { width: 105px; height: auto; }
+.container { width: min(760px, calc(100% - 32px)); margin: 0 auto; padding: 36px 0 48px; }
+.heading { margin: 0 0 18px; }
+.kicker { color: #8a5a08; font: 600 10px/1.4 "IBM Plex Mono", monospace; letter-spacing: .06em; }
+.heading h1, .card h1, .success h1 { margin: 8px 0; font-size: 29px; line-height: 1.2; }
+.heading > p, .card > p, .success > p { color: #6b6b66; font-size: 13px; line-height: 1.6; }
+.aiNote { display: flex; gap: 10px; margin-top: 20px; padding: 12px 14px; border: 1px solid #e4e5f3; border-radius: 7px; background: #f0f1ff; }
+.aiNote > span { color: #5a66df; font-size: 16px; }
+.aiNote strong { font-size: 12px; }
+.aiNote p { margin: 3px 0 0; color: #666b83; font-size: 11px; line-height: 1.5; }
+.card, .success { padding: 22px; border: 1px solid #e6e6e3; border-radius: 9px; background: #fff; box-shadow: 0 4px 16px #1f1f1e08; }
+.card { display: grid; gap: 20px; }
+.field { display: grid; gap: 7px; font-size: 12px; font-weight: 600; }
+.field > span { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.field b, .field small { color: #8a8a83; font-size: 10px; font-weight: 400; }
+.field b { color: #a93b31; }
+.field input:not([type=file]), .field textarea { box-sizing: border-box; width: 100%; padding: 10px 11px; border: 1px solid #d5d5d1; border-radius: 6px; background: #fff; color: #1f1f1e; font-family: inherit; font-size: 13px; line-height: 1.55; }
+.field textarea { resize: vertical; }
+.field input[type=file] { width: 100%; padding: 10px; border: 1px dashed #c9c9c4; border-radius: 6px; background: #fafaf8; font-size: 11px; }
+.fileList { display: grid; gap: 5px; margin-top: -12px; color: #426b9e; font-size: 11px; }
+.footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-top: 16px; border-top: 1px solid #ededea; }
+.footer p { max-width: 380px; margin: 0; color: #8c8c86; font-size: 10px; line-height: 1.5; }
+.footer button { min-height: 38px; padding: 8px 15px; border: 1px solid #2f4bff; border-radius: 6px; background: #2f4bff; color: #fff; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.footer button:disabled { cursor: wait; opacity: .65; }
+.error { margin: -5px 0; color: #a93b31; font-size: 12px; }
+.success { margin-top: 56px; padding: 32px; }
+.successMark { display: grid; width: 38px; height: 38px; place-items: center; margin-bottom: 18px; border-radius: 50%; background: #e7f3ec; color: #1f6f4e; font-size: 20px; }
+.footnote { margin: 18px 2px; color: #a2a29c; font-size: 10px; }
+@media (max-width: 560px) { .brand { height: 52px; padding: 0 16px; } .container { padding-top: 24px; } .heading h1, .success h1 { font-size: 23px; } .card { padding: 16px; } .footer { align-items: stretch; flex-direction: column; } .footer button { width: 100%; } }

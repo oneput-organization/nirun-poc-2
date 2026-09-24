@@ -2,8 +2,6 @@ services:
   objectstore:
     image: chrislusf/seaweedfs:4.47
     command: ["mini", "-dir=/data"]
-    ports:
-      - "8333:8333"
     environment:
       AWS_ACCESS_KEY_ID: oneput-local-access
       AWS_SECRET_ACCESS_KEY: oneput-local-secret

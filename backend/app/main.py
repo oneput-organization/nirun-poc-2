@@ -71,8 +71,10 @@ def workspace(project_id: str = "fy2025", user=Depends(session)):
     forms = db.all_docs("point_forms", project_id)
     if user["role"] != "admin":
         forms = [{key: value for key, value in form.items() if key != "token"} for form in forms]
+    points = db.all_docs("points", project_id)
     return {"role": user["role"], "projects": db.all_docs("projects"),
-            "points": db.all_docs("points", project_id), "members": db.all_docs("members", project_id),
+            "points": points, "pointIntakeQuestions": {point["code"]: questions_for_point(point) for point in points},
+            "members": db.all_docs("members", project_id),
             "queue": db.all_docs("queue", project_id), "messages": db.all_docs("messages", project_id),
             "exports": db.all_docs("exports", project_id), "uploads": db.all_docs("uploads", project_id),
             "activity": db.all_docs("activity", project_id), "pointForms": forms,
@@ -216,6 +218,7 @@ async def submit_intake(
         "form_id": form["id"],
         "code": form["code"],
         "respondent": clean_name,
+        "questions": form["questions"],
         "answers": answer_values,
         "anythingElse": anything_else.strip(),
         "files": attachments,

@@ -78,6 +78,19 @@
 .mappingForm .formFooter { justify-content: flex-end; }
 .card > .textButton { margin-top: 13px; }
 .finePrint { margin: 14px 0 0; }
+.shareControls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; margin-top: 14px; }
+.shareControls label { display: grid; flex: 1 1 300px; gap: 5px; color: #6b6b66; font-size: 10px; }
+.shareControls input { min-width: 0; width: 100%; box-sizing: border-box; padding: 8px 9px; border: 1px solid #d5d5d1; border-radius: 5px; background: #fafaf8; color: #3c3c39; font-family: inherit; font-size: 11px; line-height: 1.5; }
+.shareControls button { min-height: 33px; padding: 6px 10px; }
+.revoked { margin-right: auto; color: #a93b31; font-size: 11px; }
+.responseFiles { display: grid; gap: 5px; margin-top: 8px; }
+.responseFiles a { color: #2f4bff; font-size: 11px; }
+.questionPreview { margin-top: 13px; padding: 11px 12px; border-radius: 6px; background: #f7f7f5; }
+.questionPreview summary { color: #3d4dd4; font-size: 11px; font-weight: 600; cursor: pointer; }
+.questionPreview ol { display: grid; gap: 10px; margin: 12px 0; padding-left: 20px; }
+.questionPreview li { padding-left: 3px; font-size: 11px; }
+.questionPreview li strong { display: block; font-weight: 600; }
+.questionPreview li small, .questionPreview > p { display: block; margin: 3px 0 0; color: #6b6b66; font-size: 10px; line-height: 1.5; }
 .timeline { display: grid; gap: 11px; margin: 13px 0 0; padding: 0; list-style: none; }
 .timeline li { padding-left: 11px; border-left: 2px solid #d5d5d1; }
 .timeline strong { display: block; font-size: 11px; }

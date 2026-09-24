@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { pointStatuses } from "@/lib/point-demo";
 import { useWorkspace } from "@/components/workspace-context";
 import styles from "./DataPoint.module.css";
@@ -27,6 +27,7 @@ export function DataPoint() {
     addPointContribution,
     addPointMapping,
     closePoint,
+    createPointIntakeLink,
     generatePointDraft,
     isClosedPeriod,
     isDataPoint,
@@ -34,6 +35,9 @@ export function DataPoint() {
     periodName,
     pointOwners,
     pointPrompt,
+    pointIntakeForm,
+    pointIntakeQuestions,
+    pointIntakeSubmissions,
     roleMember,
     selectedPoint: point,
     selectedPointDemo: demo,
@@ -41,6 +45,7 @@ export function DataPoint() {
     setPointOwner,
     setPointStatus,
     suggestedMappings,
+    revokePointIntakeLink,
   } = useWorkspace();
   const [answer, setAnswer] = useState("");
   const [files, setFiles] = useState([]);
@@ -48,6 +53,11 @@ export function DataPoint() {
   const [framework, setFramework] = useState("GRI");
   const [disclosure, setDisclosure] = useState("");
   const [mappingNote, setMappingNote] = useState("");
+  const [intakeToken, setIntakeToken] = useState("");
+  const [origin, setOrigin] = useState("");
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  useEffect(() => setOrigin(window.location.origin), []);
 
   if (!isDataPoint) return null;
   if (!point) {
@@ -61,6 +71,8 @@ export function DataPoint() {
   }
 
   const contributions = demo.contributions || [];
+  const intakeLinkToken = pointIntakeForm?.active ? pointIntakeForm.token : intakeToken;
+  const intakeLink = intakeLinkToken && origin ? `${origin}/intake/${encodeURIComponent(intakeLinkToken)}` : "";
   const addedMappings = demo.mappings || [];
   const activity = [
     ...(demo.events || []),
@@ -94,6 +106,27 @@ export function DataPoint() {
     setDisclosure("");
     setMappingNote("");
     setMappingOpen(false);
+  }
+
+  async function makeShareLink() {
+    const result = await createPointIntakeLink(point.code);
+    if (result?.token) setIntakeToken(result.token);
+  }
+
+  async function copyShareLink() {
+    if (!intakeLink) return;
+    try {
+      await navigator.clipboard.writeText(intakeLink);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 1800);
+    } catch {
+      setLinkCopied(false);
+    }
+  }
+
+  async function revokeShareLink() {
+    await revokePointIntakeLink(point.code);
+    setIntakeToken("");
   }
 
   return (
@@ -162,6 +195,25 @@ export function DataPoint() {
           </button>
         ) : null}
 
+        {!roleMember ? <section className={styles.card}>
+          <div className={styles.cardHead}><h2>Share a fill-in form</h2><span>AI question draft</span></div>
+          <p className={styles.muted}>Create a link for the data owner to answer questions tailored to this point and upload supporting evidence. Anyone with the link can respond.</p>
+          {intakeLink ? <div className={styles.shareControls}>
+            <label>Shareable link<input aria-label="Shareable form link" readOnly value={intakeLink} onFocus={(event) => event.target.select()} /></label>
+            <button type="button" className={styles.secondaryButton} onClick={copyShareLink}>{linkCopied ? "Copied" : "Copy link"}</button>
+            <button type="button" className={styles.textButton} onClick={revokeShareLink} disabled={isClosedPeriod}>Revoke</button>
+          </div> : <div className={styles.shareControls}>
+            {pointIntakeForm && !pointIntakeForm.active ? <span className={styles.revoked}>Previous link revoked</span> : null}
+            <button type="button" className={styles.primaryButton} onClick={makeShareLink} disabled={isClosedPeriod}>Create shareable form</button>
+          </div>}
+          <details className={styles.questionPreview}>
+            <summary>Preview {pointIntakeQuestions.length} AI suggested questions</summary>
+            <ol>{pointIntakeQuestions.map((question) => <li key={question.id}><strong>{question.label}{question.required ? " · Required" : ""}</strong><small>{question.help}</small></li>)}</ol>
+            <p>The mock question set is tailored to this point's type and code. Owners can still add context in the form.</p>
+          </details>
+          <p className={styles.finePrint}>The link opens without sign-in. Responses and uploaded files are saved to this report. Revoke access here at any time.</p>
+        </section> : null}
+
         <div className={styles.columns}>
           <div className={styles.primary}>
             <section className={styles.card}>
@@ -209,7 +261,7 @@ export function DataPoint() {
                   />
                   {files.length ? <div className={styles.fileNames}>{files.map((file) => file.name).join(" · ")}</div> : null}
                   <div className={styles.formFooter}>
-                    <span>Prototype: file names are saved; file contents are not uploaded or read.</span>
+                    <span>Quick entry records file names only. Use a shared form to upload evidence files.</span>
                     <button type="submit" className={styles.primaryButton} disabled={!canSubmit}>Send for review</button>
                   </div>
                 </form>
@@ -224,6 +276,18 @@ export function DataPoint() {
                 )) : <p className={styles.empty}>No team input attached to this point yet.</p>}
               </div>
             </section>
+
+            {!roleMember && pointIntakeSubmissions.length ? <section className={styles.card}>
+              <div className={styles.cardHead}><h2>Shared form responses</h2><span>{pointIntakeSubmissions.length} response{pointIntakeSubmissions.length === 1 ? "" : "s"}</span></div>
+              <div className={styles.entries}>{pointIntakeSubmissions.map((submission) => (
+                <article className={styles.entry} key={submission.id}>
+                  <div className={styles.entryMeta}><strong>{submission.respondent}</strong><span>{dateLabel(submission.submittedAt)}</span></div>
+                  {(submission.questions || pointIntakeForm?.questions || []).map((question) => submission.answers?.[question.id] ? <p key={question.id}><strong>{question.label}</strong><br />{submission.answers[question.id]}</p> : null)}
+                  {submission.anythingElse ? <p><strong>Anything else?</strong><br />{submission.anythingElse}</p> : null}
+                  {submission.files?.length ? <div className={styles.responseFiles}>{submission.files.map((file) => <a key={file.id} href={`/api/intake-submissions/${encodeURIComponent(submission.id)}/files/${encodeURIComponent(file.id)}`}>📎 {file.name} · {(file.size / 1024 / 1024).toFixed(1)} MB</a>)}</div> : null}
+                </article>
+              ))}</div>
+            </section> : null}
 
             <section className={styles.card}>
               <div className={styles.cardHead}>

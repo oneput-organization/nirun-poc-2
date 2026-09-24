@@ -12,7 +12,7 @@ docker compose up --build -d
 - FastAPI docs: http://localhost:8000/docs
 - Health: http://localhost:8000/api/health
 
-Choose **Look around on my own**, then **Admin** or **Member**. The guide launcher can replay either walkthrough. Data, uploads, and generated exports persist in the `oneput-data` Docker volume.
+Choose **Look around on my own**, then **Admin** or **Member**. The guide launcher can replay either walkthrough. SQLite records, local evidence, and generated exports persist in `oneput-data`; public intake evidence is stored in the S3-compatible SeaweedFS service and persists in `oneput-objects`.
 
 ```sh
 docker compose logs -f
@@ -49,7 +49,7 @@ backend/
 
 The original visual layouts, responsive breakpoints, admin/member role switch, Thai accountant persona, notification menus, project filters, planning checklist, coverage matrix and drawers, calendar/dependency warning, member detail, audit variants, settings tabs, export options, and both guided tours are implemented as React components.
 
-The backend supports demo sessions; project creation and archiving; adding data points and members; accepting, rejecting, re-asking, and overriding answers with retained history; decisions for unrecoverable data; persisted preferences and tracker confirmations; local conversations; evidence upload/download (20 MB per file); real export files; and revocable read-only share links. Closed periods reject mutations. Planning, uploaded evidence, and navigation survive a page refresh.
+The backend supports demo sessions; project creation and archiving; adding data points and members; accepting, rejecting, re-asking, and overriding answers with retained history; decisions for unrecoverable data; persisted preferences and tracker confirmations; local conversations; evidence upload/download (20 MB per file); tailored public data-point forms with revocable links and private S3 evidence; real export files; and revocable read-only export links. Closed periods reject mutations. Planning, form responses, uploaded evidence, and navigation survive a page refresh.
 
 For the Thai member view, open `/?persona=accountant`, dismiss the welcome, and choose Member. Tours also support `/?guide=overview`, `/?guide=how`, and a one-based `step` query parameter.
 
