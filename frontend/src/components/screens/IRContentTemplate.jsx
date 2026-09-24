@@ -81,18 +81,45 @@ export function IRContentTemplate() {
   const stageIndex = chapter.status === "fp_setup" ? 0 : ["owner_draft", "changes_requested"].includes(chapter.status) ? 1 : ["owner_submitted", "reopen_requested"].includes(chapter.status) ? 2 : 3;
 
   function draftWithAi() {
-    const evidence = chapter.points.map((point) => {
-      const value = contentFromPoint(point, point.demo);
-      return value ? `• ${point.name}: ${value}` : `• ${point.name}: owner evidence is still pending (${point.status}).`;
-    }).join("\n");
+    const inputs = chapter.points.map((point) => ({
+      point,
+      text: point.demo?.draft?.trim() || point.value?.trim() || (point.demo?.contributions || []).map((item) => item.text?.trim()).filter(Boolean).join(" "),
+    }));
+    const available = inputs.filter((item) => item.text);
+    const topics = chapter.points.map((point) => point.name).join(", ") || "this chapter's material";
+    const evidenceLines = available.map(({ point, text }) => `• ${point.code} ${point.name} (${point.status}): ${text}`).join("\n");
+    const missing = inputs.filter((item) => !item.text).map(({ point }) => `${point.code} ${point.name} (${point.status})`);
+    const citationLine = available.length
+      ? `The initial reporting inputs for ${topics} include ${available.map(({ point }) => point.code).join(", ")}. The owner should confirm the reporting period, calculation method, scope and supporting evidence before publication.`
+      : `Information for ${topics} has not yet been provided by the data owners. [OWNER INPUT REQUIRED: confirm the reporting period, scope, impact and supporting evidence.]`;
+    const scopeNote = missing.length ? `\n\n[OWNER INPUT REQUIRED: provide evidence for ${missing.join("; ")}.]` : "";
     const sourceNames = Object.values(irReport.sources || {}).map((source) => source.name).filter(Boolean);
-    setAiPreview([`Working draft for ${chapter.name}`, sourceNames.length ? `Reference material recorded: ${sourceNames.join(", ")}.` : "Reference prior IR books and approved CSSM publications before finalizing.", evidence || "No linked data points yet; add the relevant point owners and evidence first.", "Review this starting draft against IFRS and GRI requirements, then verify every claim with the source owner."].join("\n\n"));
+    const sourceNote = sourceNames.length
+      ? `Recorded reference files for focal-point review: ${sourceNames.join(", ")}. Their contents are not available to this draft generator.`
+      : "[FOCAL POINT: add the previous IR report and approved CSSM material as source references before finalizing.]";
+    const draft = {
+      challenges: `For ${chapter.name}, the available reporting inputs cover ${topics}. ${available.length ? `The submitted data currently records ${available.map(({ point }) => point.name).join(", ")}.` : "No owner-verified evidence is linked yet."} The related impacts, risks, affected stakeholders and changes during the reporting period still require confirmation from the content owner.${scopeNote}`,
+      commitments: `The current source set does not establish a verified commitment, baseline or time-bound target for ${chapter.name}. [OWNER INPUT REQUIRED: confirm applicable commitments, target values, baseline year, target year and progress; state “none” if no commitment applies.]${scopeNote}`,
+      approach: `The management approach for ${chapter.name} should describe the responsible governance and accountable teams, policies and processes, actions taken, and how effectiveness is monitored. ${citationLine}${scopeNote}`,
+      performance: `${citationLine}\n\nAvailable data-point inputs:\n${evidenceLines || "[OWNER INPUT REQUIRED: no usable data-point responses are available yet.]"}${missing.length ? `\n\nPending data points: ${missing.join("; ")}.` : ""}\n\n${sourceNote}`,
+    };
+    setAiPreview(draft);
   }
 
-  function applyAiPreview() {
+  function applyAiPreview(fieldId) {
+    const content = aiPreview?.[fieldId];
+    if (!content) return;
+    setForm((previous) => ({ ...previous, fields: { ...previous.fields, [fieldId]: [previous.fields[fieldId]?.trim(), content].filter(Boolean).join("\n\n") } }));
+    setAiPreview((previous) => ({ ...previous, [fieldId]: "" }));
+  }
+
+  function applyEmptyAiSections() {
     if (!aiPreview) return;
-    setForm((previous) => ({ ...previous, fields: { ...previous.fields, performance: [previous.fields.performance.trim(), aiPreview].filter(Boolean).join("\n\n") } }));
-    setAiPreview("");
+    setForm((previous) => ({
+      ...previous,
+      fields: Object.fromEntries(irFields.map((field) => [field.id, previous.fields[field.id]?.trim() ? previous.fields[field.id] : aiPreview[field.id]])),
+    }));
+    setAiPreview(null);
   }
 
   function reviewDraftWithAi() {
@@ -296,9 +323,12 @@ export function IRContentTemplate() {
                 <div><h3>IR content form</h3><p>Owner writes the first draft. Save keeps the chapter red; Submit moves it to orange review.</p></div>
               </div>
               {canEditContent ? <div className={styles.aiAssist}>
-                <div><strong>AI starting draft</strong><small>Uses linked point inputs and recorded source names. It does not read attached source files or verify claims.</small></div>
-                <button type="button" className={styles.outlineButton} onClick={draftWithAi}>Prepare AI draft preview</button>
-                {aiPreview ? <><pre>{aiPreview}</pre><button type="button" className={styles.textButton} onClick={applyAiPreview}>Add preview to Performance for owner review</button></> : null}
+                <div><strong>AI first-draft preview · all four sections</strong><small>Builds a reviewable starting draft from linked data-point responses and recorded source references. It marks missing facts for owner input and never overwrites existing text automatically. Source-file contents are not read in this prototype.</small></div>
+                <button type="button" className={styles.outlineButton} onClick={draftWithAi}>Generate chapter draft</button>
+                {aiPreview ? <>
+                  <div className={styles.aiDraftSections}>{irFields.map((field) => <article key={field.id}><div><strong>{field.label}</strong><button type="button" className={styles.textButton} onClick={() => applyAiPreview(field.id)}>Add to section</button></div><pre>{aiPreview[field.id]}</pre></article>)}</div>
+                  <button type="button" className={styles.primaryButton} onClick={applyEmptyAiSections}>Fill empty sections for owner review</button>
+                </> : null}
               </div> : null}
               <div className={styles.contentFields}>
                 {irFields.map((field) => (

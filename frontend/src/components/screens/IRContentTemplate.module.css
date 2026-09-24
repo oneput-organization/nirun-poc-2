@@ -220,6 +220,11 @@
 .aiAssist small { color: #6b6b66; font-size: 10px; line-height: 15px; }
 .aiAssist pre { max-height: 240px; overflow: auto; margin: 0; padding: 10px; border-radius: 4px; background: white; white-space: pre-wrap; font: 11px/1.6 inherit; }
 .aiAssist button { justify-self: start; }
+.aiDraftSections { display: grid; gap: 8px; }
+.aiDraftSections article { min-width: 0; padding: 10px; border: 1px solid #e6e6e3; border-radius: 5px; background: white; }
+.aiDraftSections article > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.aiDraftSections article > div strong { font-size: 11px; }
+.aiDraftSections pre { max-height: 190px; margin-top: 8px; padding: 0; }
 .aiPolish { display: grid; gap: 7px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #e9e9e6; }
 .aiPolish pre { margin: 0; padding: 10px; border-radius: 5px; background: #f7f7f5; color: #4c4c48; white-space: pre-wrap; font: 11px/1.6 inherit; }
 .reviewList { margin-top: 15px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
