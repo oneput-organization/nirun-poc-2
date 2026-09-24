@@ -564,8 +564,8 @@ export function buildWorkspaceView() {
       badges: Array.isArray(row.badges) ? row.badges : [],
     };
     return demo
-      ? { ...normalizedRow, owner: demo.owner || row.owner, status: demo.status || row.status }
-      : normalizedRow;
+      ? { ...normalizedRow, demo, owner: demo.owner || row.owner, status: demo.status || row.status, due_date: demo.dueDate || row.due_date || row.due }
+      : { ...normalizedRow, demo: {} };
   });
   const selectedPoint = rows.find((row) => row.code === S.pointCode);
   const selectedPointDemo = S.pointDemo?.[`${S.projectId}:${S.pointCode}`] || {};
@@ -2376,12 +2376,13 @@ export function buildWorkspaceView() {
     isMembers: isAdm && S.screen === "members",
     isAudit: isAdm && S.screen === "audit",
     isExport: isAdm && S.screen === "export",
-    showHeader: isAdm && !["projects", "anchor", "report-setup"].includes(S.screen),
+    showHeader: isAdm && !["projects", "anchor", "report-setup", "setup"].includes(S.screen),
     projects,
     projFilters,
     projectsEmpty: !!P.emptyProjects,
     projectsList: !P.emptyProjects,
     sections,
+    dataTemplateRows: rows,
     pointSections: sections.map((section) => section.name),
     dataDictionary: S.data?.dataDictionary || { dimensions: [], boundaries: [] },
     isIrTemplate: isAdm && S.screen === "ir",
@@ -2430,6 +2431,8 @@ export function buildWorkspaceView() {
     closePoint: this.closePoint,
     setPointOwner: this.setPointOwner,
     setPointStatus: this.setPointStatus,
+    setPointTemplateStatus: this.setPointTemplateStatus,
+    setPointDueDate: this.setPointDueDate,
     addPointContribution: this.addPointContribution,
     addPointMapping: this.addPointMapping,
     generatePointDraft: this.generatePointDraft,

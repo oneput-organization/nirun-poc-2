@@ -488,6 +488,28 @@ export class WorkspaceController extends IrTemplateActions {
       ],
     }));
   };
+  setPointTemplateStatus = (code, templateStatus) => {
+    const statusMap = { "Not started": "open", Draft: "open", Submitted: "submitted", Returned: "flagged", Accepted: "accepted" };
+    if (!statusMap[templateStatus]) return;
+    this.updatePointDemo(code, (current) => ({
+      templateStatus,
+      status: statusMap[templateStatus],
+      events: [
+        { id: crypto.randomUUID(), label: `Template status changed to ${templateStatus}`, at: new Date().toISOString() },
+        ...(current.events || []),
+      ],
+    }));
+  };
+  setPointDueDate = (code, dueDate) => {
+    if (!dueDate) return;
+    this.updatePointDemo(code, (current) => ({
+      dueDate,
+      events: [
+        { id: crypto.randomUUID(), label: `Due date changed to ${dueDate}`, at: new Date().toISOString() },
+        ...(current.events || []),
+      ],
+    }));
+  };
   addPointContribution = (code, text, files) => {
     if (!text.trim() && !files.length) return;
     this.updatePointDemo(code, (current) => ({
