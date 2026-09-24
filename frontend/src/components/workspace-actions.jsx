@@ -155,9 +155,14 @@ export class WorkspaceActions extends Component {
       }
       this.setState({ pendingFiles: [], newProjectName: "", newProjectDescription: "" });
       await this.refresh(project.id);
-      this.go("setup");
-      this.showToast("Project created. Your checklist is ready to plan.");
+      this.go(this.state.projectType === "Annual report" ? "report-setup" : "setup");
+      this.showToast(this.state.projectType === "Annual report" ? "Project created. Set up the report template in five steps." : "Project created. Your checklist is ready to plan.");
     });
+  finishAnnualReportSetup = () => {
+    this.setState({ annualReportSetupComplete: true });
+    this.go("setup");
+    this.showToast("Data template created. You can review it before sending it to owners.");
+  };
   setField = (name, value) => this.setState({ [name]: value });
   onFieldChange = (event) => {
     const { value, placeholder, type } = event.target;
@@ -544,6 +549,7 @@ export class WorkspaceActions extends Component {
     demoSwitch: () =>
       this.switchRole(this.state.role === "admin" ? "member" : "admin"),
     startPlanning: this.createProject,
+    finishAnnualReportSetup: this.finishAnnualReportSetup,
     inviteMember: this.inviteMember,
     toastAccept: () => this.review("accept"),
     toastReject: () => this.review("reject"),

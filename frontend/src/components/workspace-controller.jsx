@@ -9,6 +9,7 @@ import { RoleSwitcher } from "./layout/RoleSwitcher";
 import { Toast } from "./overlays/Toast";
 import { Projects } from "./screens/Projects";
 import { NewProject } from "./screens/NewProject";
+import { AnnualReportSetup } from "./screens/AnnualReportSetup";
 import { ProjectHeader } from "./layout/ProjectHeader";
 import { Planning } from "./screens/Planning";
 import { DataPoint } from "./screens/DataPoint";
@@ -531,6 +532,7 @@ export class WorkspaceController extends IrTemplateActions {
           <Toast />
           <Projects />
           <NewProject />
+          <AnnualReportSetup />
           <ProjectHeader />
           <Planning />
           <DataPoint key={`${this.state.projectId}:${this.state.pointCode || "none"}`} />

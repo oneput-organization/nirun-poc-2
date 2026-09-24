@@ -1399,6 +1399,7 @@ export function buildWorkspaceView() {
       }));
   // ---------- header ----------
   const screenLabels = {
+    "report-setup": "Set up your report",
     setup: "Planning",
     overview: "Overview",
     calendar: "Calendar",
@@ -2363,13 +2364,14 @@ export function buildWorkspaceView() {
       }),
     isProjects: isAdm && S.screen === "projects",
     isAnchor: isAdm && S.screen === "anchor",
+    isReportSetup: isAdm && S.screen === "report-setup",
     isSetup: isAdm && S.screen === "setup",
     isOverview: isAdm && S.screen === "overview",
     isCalendar: isAdm && S.screen === "calendar",
     isMembers: isAdm && S.screen === "members",
     isAudit: isAdm && S.screen === "audit",
     isExport: isAdm && S.screen === "export",
-    showHeader: isAdm && !["projects", "anchor"].includes(S.screen),
+    showHeader: isAdm && !["projects", "anchor", "report-setup"].includes(S.screen),
     projects,
     projFilters,
     projectsEmpty: !!P.emptyProjects,
