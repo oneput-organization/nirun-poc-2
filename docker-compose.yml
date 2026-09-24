@@ -1,12 +1,31 @@
 services:
+  objectstore:
+    image: chrislusf/seaweedfs:4.47
+    command: ["mini", "-dir=/data"]
+    ports:
+      - "8333:8333"
+    environment:
+      AWS_ACCESS_KEY_ID: oneput-local-access
+      AWS_SECRET_ACCESS_KEY: oneput-local-secret
+      S3_BUCKET: oneput-submissions
+    volumes:
+      - oneput-objects:/data
+    restart: unless-stopped
   backend:
     build: ./backend
     ports:
       - "8000:8000"
     environment:
       DATA_DIR: /data
+      OBJECT_STORAGE_ENDPOINT_URL: http://objectstore:8333
+      AWS_ACCESS_KEY_ID: oneput-local-access
+      AWS_SECRET_ACCESS_KEY: oneput-local-secret
+      AWS_DEFAULT_REGION: us-east-1
+      S3_BUCKET: oneput-submissions
     volumes:
       - oneput-data:/data
+    depends_on:
+      - objectstore
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
       interval: 5s
@@ -25,3 +44,4 @@ services:
     restart: unless-stopped
 volumes:
   oneput-data:
+  oneput-objects:

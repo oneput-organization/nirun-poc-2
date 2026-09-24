@@ -226,6 +226,24 @@ export class WorkspaceActions extends Component {
         }[action] || "Decision saved.",
       );
     });
+  createPointIntakeLink = (code) =>
+    this.request(async () => {
+      const result = await api(`${this.projectPath()}/points/${encodeURIComponent(code)}/intake-link`, {
+        method: "POST",
+        body: {},
+      });
+      await this.refresh();
+      this.showToast("Shareable fill-in form created.");
+      return result;
+    });
+  revokePointIntakeLink = (code) =>
+    this.request(async () => {
+      await api(`${this.projectPath()}/points/${encodeURIComponent(code)}/intake-link`, {
+        method: "DELETE",
+      });
+      await this.refresh();
+      this.showToast("The data point form link has been revoked.");
+    });
   sendMessage = () => this.sendThread("member", "message");
   sendAssistantMessage = () => this.sendThread("assistant", "assistantMessage");
   sendThread = (thread, field) =>
