@@ -5867,6 +5867,12 @@ button {
 .overview-plan-heading button {
   flex-shrink: 0;
 }
+.overview-plan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
 .overview-plan-scroll {
   overflow-x: auto;
 }
@@ -5946,6 +5952,9 @@ button {
 @media (max-width: 767px) {
   .overview-plan-heading {
     align-items: flex-start;
+  }
+  .overview-plan-actions {
+    justify-content: flex-start;
   }
   .overview-plan-heading button {
     font-size: 11px;

@@ -18,6 +18,7 @@ export function Planning() {
     needsShown,
     onAction,
     openPoint,
+    openIrTemplate,
     openOps03,
     phoneAdmin,
     planAiBg,
@@ -73,6 +74,9 @@ export function Planning() {
             >
               <button onClick={goOverview} className="ui-98 hover-4">
                 {"← Back to overview"}
+              </button>
+              <button onClick={() => openIrTemplate()} className="ui-98 hover-4">
+                {"Open IR Content Template →"}
               </button>
               {phoneAdmin ? (
                 <>

@@ -1,4 +1,5 @@
 import { pointCollectionPrompt, pointStatus, suggestedPointMappings } from "@/lib/point-demo";
+import { contentFromPoint, emptyIrChapter, irReviewChecks, irSetupChecks, irStage } from "@/lib/ir-template";
 
 export function buildWorkspaceView() {
   const S = this.state,
@@ -586,6 +587,41 @@ export function buildWorkspaceView() {
                 : "2 of 3 points",
     rows: rows.filter((r) => r.section === name),
   }));
+  const irReport = S.irTemplates?.[S.projectId] || {};
+  const reportSections = [
+    ...sections.filter((section) => section.rows.length),
+    ...[...new Set(rows.map((point) => point.section).filter(Boolean))]
+      .filter((name) => !sections.some((section) => section.name === name))
+      .map((name) => ({ name })),
+  ];
+  const irChapterDefs = [
+    ...(reportSections.length ? reportSections : [{ name: "Report content" }]).map((section) => ({ id: section.name, name: section.name })),
+    ...(irReport.extraChapters || []),
+  ].sort((a, b) => {
+    const order = irReport.chapterOrder || [];
+    const left = order.indexOf(a.id);
+    const right = order.indexOf(b.id);
+    return (left < 0 ? 1000 : left) - (right < 0 ? 1000 : right);
+  });
+  const irChapters = irChapterDefs.map((definition) => {
+    const saved = irReport.chapters?.[definition.id] || emptyIrChapter();
+    const points = rows
+      .filter((point) => (irReport.pointChapters?.[point.code] || point.section) === definition.id)
+      .map((point) => {
+        const demo = S.pointDemo?.[`${S.projectId}:${point.code}`] || {};
+        return { ...point, demo, hasContent: !!contentFromPoint(point, demo) };
+      });
+    return {
+      ...saved,
+      id: definition.id,
+      name: saved.title || definition.name,
+      points,
+      stage: irStage(saved.status),
+      mappings: points.flatMap((point) => suggestedPointMappings(point).map((mapping) => ({ ...mapping, pointCode: point.code }))),
+      reviewComplete: irReviewChecks.filter((check) => saved.reviewChecks?.[check.id]).length,
+    };
+  });
+  const selectedIrChapter = irChapters.find((chapter) => chapter.id === S.irChapter) || irChapters[0];
   // ---------- coverage matrix ----------
   const windows = ["22 Jul", "1 Aug", "8 Aug", "15 Aug", "29 Aug", "5 Sep"];
   const cellStyle = {
@@ -2338,6 +2374,27 @@ export function buildWorkspaceView() {
     projectsEmpty: !!P.emptyProjects,
     projectsList: !P.emptyProjects,
     sections,
+    isIrTemplate: isAdm && S.screen === "ir",
+    irReport,
+    irChapters,
+    selectedIrChapter,
+    irSetupChecks,
+    irReviewChecks,
+    irSetupComplete: irSetupChecks.every((check) => irReport.setupChecks?.[check.id]),
+    openIrTemplate: this.openIrTemplate,
+    selectIrChapter: this.selectIrChapter,
+    setIrSetupCheck: this.setIrSetupCheck,
+    addIrSource: this.addIrSource,
+    addIrChapter: this.addIrChapter,
+    moveIrChapter: this.moveIrChapter,
+    assignIrPoint: this.assignIrPoint,
+    handoffIrChapter: this.handoffIrChapter,
+    queueIrReminder: this.queueIrReminder,
+    saveIrChapter: this.saveIrChapter,
+    insertIrPoint: this.insertIrPoint,
+    setIrReviewCheck: this.setIrReviewCheck,
+    requestIrChanges: this.requestIrChanges,
+    submitIrForVp: this.submitIrForVp,
     pointCodes: rows.map((row) => row.code),
     isDataPoint: S.role !== null && S.screen === "point",
     selectedPoint,
@@ -2403,7 +2460,7 @@ export function buildWorkspaceView() {
     exportFormats,
     exportHistory,
     exportFormat: S.exportFormat,
-    screenLabel: S.screen === "point" ? S.pointCode || "Data point" : screenLabels[S.screen] || "",
+    screenLabel: S.screen === "point" ? S.pointCode || "Data point" : S.screen === "ir" ? "IR Content Template" : screenLabels[S.screen] || "",
     periodMenu: S.periodMenu,
     periodRows,
     periodName: S.period,

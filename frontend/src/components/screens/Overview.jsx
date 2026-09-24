@@ -24,6 +24,7 @@ export function Overview() {
     needsShown,
     ovBottomCols,
     openPoint,
+    openIrTemplate,
     setupPadR,
     statMore,
     toggleNeeds,
@@ -54,6 +55,9 @@ export function Overview() {
               <div className="ui-20">
                 <button onClick={goSetup} className="ui-165 hover-2">
                   {"Edit the plan"}
+                </button>
+                <button onClick={() => openIrTemplate()} className="ui-165 hover-2">
+                  {"IR Content Template"}
                 </button>
                 <button onClick={goCalendar} className="ui-165 hover-2">
                   {"Open the calendar"}
@@ -150,9 +154,10 @@ export function Overview() {
                   <h2 id="overview-plan-title">Annual report plan</h2>
                   <p>{`${totalPointCount} points across ${sections.length} report sections`}</p>
                 </div>
-                <button onClick={goSetup} className="ui-192 hover-10">
-                  {"Edit the full plan →"}
-                </button>
+                <div className="overview-plan-actions">
+                  <button onClick={goSetup} className="ui-192 hover-10">{"Edit the full plan →"}</button>
+                  <button onClick={() => openIrTemplate()} className="ui-192 hover-10">{"Open IR template →"}</button>
+                </div>
               </div>
               <div className="overview-plan-scroll">
                 <div

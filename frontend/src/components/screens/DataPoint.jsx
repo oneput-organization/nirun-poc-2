@@ -30,6 +30,7 @@ export function DataPoint() {
     generatePointDraft,
     isClosedPeriod,
     isDataPoint,
+    openIrTemplate,
     periodName,
     pointOwners,
     pointPrompt,
@@ -155,6 +156,11 @@ export function DataPoint() {
             <strong>{periodName}</strong>
           </div>
         </div>
+        {!roleMember ? (
+          <button type="button" onClick={() => openIrTemplate(point.section)} className={styles.templateLink}>
+            Open this chapter in IR Content Template →
+          </button>
+        ) : null}
 
         <div className={styles.columns}>
           <div className={styles.primary}>

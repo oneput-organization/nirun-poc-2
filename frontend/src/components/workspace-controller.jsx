@@ -1,7 +1,7 @@
 "use client";
 import { buildWorkspaceView } from "@/lib/workspace-view";
 import { makePointDraft, pointStatuses } from "@/lib/point-demo";
-import { WorkspaceActions } from "./workspace-actions";
+import { IrTemplateActions } from "./ir-template-actions";
 import { WorkspaceContext } from "./workspace-context";
 import { tours } from "@/data/tours";
 import { SignIn } from "./screens/SignIn";
@@ -12,6 +12,7 @@ import { NewProject } from "./screens/NewProject";
 import { ProjectHeader } from "./layout/ProjectHeader";
 import { Planning } from "./screens/Planning";
 import { DataPoint } from "./screens/DataPoint";
+import { IRContentTemplate } from "./screens/IRContentTemplate";
 import { Overview } from "./screens/Overview";
 import { Calendar } from "./screens/Calendar";
 import { Members } from "./screens/Members";
@@ -35,7 +36,7 @@ import { TourCard } from "./overlays/TourCard";
 import { ActionDialog } from "./overlays/ActionDialog";
 import { GuideLauncher } from "./overlays/GuideLauncher";
 
-export class WorkspaceController extends WorkspaceActions {
+export class WorkspaceController extends IrTemplateActions {
   state = {
     data: null,
     projectId: "fy2025",
@@ -100,6 +101,8 @@ export class WorkspaceController extends WorkspaceActions {
     pointCode: null,
     pointBack: "setup",
     pointDemo: {},
+    irTemplates: {},
+    irChapter: "Finance",
     auditBack: "overview",
     trackerConfirmed: {},
     shareRevoked: false,
@@ -134,6 +137,9 @@ export class WorkspaceController extends WorkspaceActions {
       const saved = JSON.parse(sessionStorage.getItem("oneput-point-demo-v1") || "{}");
       if (saved && typeof saved === "object" && !Array.isArray(saved))
         this.setState({ pointDemo: saved });
+      const irSaved = JSON.parse(sessionStorage.getItem("oneput-ir-template-v1") || "{}");
+      if (irSaved && typeof irSaved === "object" && !Array.isArray(irSaved))
+        this.setState({ irTemplates: irSaved });
     } catch {
       // Invalid browser demo data starts fresh.
     }
@@ -200,6 +206,13 @@ export class WorkspaceController extends WorkspaceActions {
         sessionStorage.setItem("oneput-point-demo-v1", JSON.stringify(this.state.pointDemo));
       } catch {
         // The prototype remains usable when browser storage is unavailable.
+      }
+    }
+    if (previousState.irTemplates !== this.state.irTemplates) {
+      try {
+        sessionStorage.setItem("oneput-ir-template-v1", JSON.stringify(this.state.irTemplates));
+      } catch {
+        // Keep the prototype usable if browser storage is unavailable.
       }
     }
     const { role, screen, mscreen, projectId, period } = this.state;
@@ -521,6 +534,7 @@ export class WorkspaceController extends WorkspaceActions {
           <ProjectHeader />
           <Planning />
           <DataPoint key={`${this.state.projectId}:${this.state.pointCode || "none"}`} />
+          <IRContentTemplate key={`${this.state.projectId}:${this.state.irChapter}`} />
           <Overview />
           <Calendar />
           <Members />
