@@ -587,6 +587,13 @@ export function buildWorkspaceView() {
                 : "2 of 3 points",
     rows: rows.filter((r) => r.section === name),
   }));
+  const knownSectionNames = new Set(sections.map((section) => section.name));
+  for (const section of S.data?.customSections || []) {
+    if (knownSectionNames.has(section.name)) continue;
+    knownSectionNames.add(section.name);
+    const sectionRows = rows.filter((row) => row.section === section.name);
+    sections.push({ id: section.id, name: section.name, count: `${sectionRows.length} points`, rows: sectionRows });
+  }
   const irReport = S.irTemplates?.[S.projectId] || {};
   const reportSections = [
     ...sections.filter((section) => section.rows.length),
@@ -2374,6 +2381,7 @@ export function buildWorkspaceView() {
     projectsEmpty: !!P.emptyProjects,
     projectsList: !P.emptyProjects,
     sections,
+    pointSections: sections.map((section) => section.name),
     isIrTemplate: isAdm && S.screen === "ir",
     irReport,
     irChapters,

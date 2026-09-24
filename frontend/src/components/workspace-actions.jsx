@@ -132,13 +132,15 @@ export class WorkspaceActions extends Component {
   };
   createProject = () =>
     this.request(async () => {
+      const name = this.state.newProjectName?.trim();
       const description = this.state.newProjectDescription?.trim();
+      if (!name) throw new Error("Enter a project name first.");
       if (!description)
         throw new Error("Tell Oneput what you need to collect first.");
       const project = await api("/projects", {
         method: "POST",
         body: {
-          name: description.split("\n")[0].slice(0, 120),
+          name,
           description,
           framework: this.state.projectType || "Annual report",
         },
@@ -151,7 +153,7 @@ export class WorkspaceActions extends Component {
           body: form,
         });
       }
-      this.setState({ pendingFiles: [] });
+      this.setState({ pendingFiles: [], newProjectName: "", newProjectDescription: "" });
       await this.refresh(project.id);
       this.go("setup");
       this.showToast("Project created. Your checklist is ready to plan.");
@@ -382,6 +384,7 @@ export class WorkspaceActions extends Component {
     const type = projectTypes.find((type) => label.startsWith(type));
     if (type) return this.setState({ projectType: type });
     if (label === "Add point") return this.setState({ modal: "point" });
+    if (label === "Add section") return this.setState({ modal: "section" });
     if (label === "Start from a document") return this.uploadFile();
     if (label === "Move a date") return this.setState({ modal: "schedule" });
     if (label === "Looks right")
@@ -473,6 +476,8 @@ export class WorkspaceActions extends Component {
           method: "POST",
           body: values,
         });
+      else if (kind === "section")
+        await api(`${this.projectPath()}/sections`, { method: "POST", body: values });
       else if (kind === "draft")
         await api(`${this.projectPath()}/points/OPS-04`, {
           method: "PATCH",
@@ -503,9 +508,11 @@ export class WorkspaceActions extends Component {
       await this.refresh();
       this.setState({ modal: null });
       this.showToast(
-        kind === "connection"
-          ? "Source configuration saved locally. Provider authorization is required for live syncing."
-          : "Saved.",
+      kind === "connection"
+        ? "Source configuration saved locally. Provider authorization is required for live syncing."
+        : kind === "section"
+          ? "Planning section added. You can now assign data points to it."
+        : "Saved.",
       );
     });
   actionValues = () => ({
@@ -621,6 +628,7 @@ export class WorkspaceActions extends Component {
         : this.state.data?.uploads || [],
     actionDialog: [
       "point",
+      "section",
       "schedule",
       "connection",
       "relay",

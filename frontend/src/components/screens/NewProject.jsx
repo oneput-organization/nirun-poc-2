@@ -11,6 +11,9 @@ export function NewProject() {
     onFieldChange,
     onFileDrop,
     uploadFile,
+    newProjectName,
+    newProjectDescription,
+    setField,
   } = useWorkspace();
   return (
     <>
@@ -30,15 +33,17 @@ export function NewProject() {
                 </p>
                 <div className="ui-6">
                   <div data-tour={"np-box"} className="ui-7">
-                    <label className="ui-68">
-                      {"What do you need to collect?"}
-                    </label>
+                    <label className="ui-68" htmlFor="new-project-name">{"Project name"}</label>
+                    <input id="new-project-name" value={newProjectName || ""} onChange={(event) => setField("newProjectName", event.target.value)} placeholder="e.g. FY2026 Sustainability Report" maxLength={160} className="ui-69" />
+                    <label className="ui-68" htmlFor="new-project-description">{"What do you need to collect?"}</label>
                     <textarea
+                      id="new-project-description"
+                      value={newProjectDescription || ""}
                       placeholder={
                         "We need to collect data for this year's annual report\nI want quarterly feedback from everyone in the company"
                       }
                       className="ui-69"
-                      onChange={onFieldChange}
+                      onChange={(event) => setField("newProjectDescription", event.target.value)}
                     ></textarea>
                   </div>
                   <Attachments />

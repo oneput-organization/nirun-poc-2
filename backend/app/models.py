@@ -38,7 +38,11 @@ class NewPointInput(BaseModel):
     name: str = Field(min_length=1, max_length=160)
     owner: str = Field(min_length=1, max_length=160)
     due: str = Field(min_length=1, max_length=30)
-    section: Literal["Finance", "Operations", "Ventures", "People", "Governance", "Narrative"] = "Operations"
+    section: str = Field(default="Operations", min_length=1, max_length=100)
+    description: str = Field(default="", max_length=2000)
+
+class NewSectionInput(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
 
 class IntakeQuestionInput(BaseModel):
     id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,64}$")

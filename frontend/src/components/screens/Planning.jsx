@@ -188,6 +188,7 @@ export function Planning() {
                         <span className="ui-115">{`${totalPointCount} points`}</span>
                       </div>
                       <div className="ui-113">
+                        <button className="ui-21 hover-2" onClick={() => onAction("Add section")}>{"Add section"}</button>
                         <button
                           className="ui-21 hover-2"
                           onClick={(e) => onAction("Add point", e)}

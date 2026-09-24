@@ -16,7 +16,7 @@ from botocore.exceptions import BotoCoreError, ClientError
 from . import database as db
 from . import object_store
 from .auth import admin, session
-from .models import SessionInput, ProjectInput, PointInput, MemberInput, MessageInput, ActionInput, ExportInput, NewPointInput, IntakeQuestionsInput
+from .models import SessionInput, ProjectInput, PointInput, MemberInput, MessageInput, ActionInput, ExportInput, NewPointInput, NewSectionInput, IntakeQuestionsInput
 from .exports import generate
 from .seed_exports import initialize_exports
 from .intake import questions_for_point, summarize_answers
@@ -75,6 +75,7 @@ def workspace(project_id: str = "fy2025", user=Depends(session)):
     question_sets = {item["code"]: item["questions"] for item in db.all_docs("point_question_sets", project_id)}
     forms_by_code = {item["code"]: item for item in forms}
     return {"role": user["role"], "projects": db.all_docs("projects"),
+            "customSections": db.all_docs("project_sections", project_id),
             "points": points, "pointIntakeQuestions": {
                 point["code"]: question_sets.get(point["code"], forms_by_code.get(point["code"], {}).get("questions") or questions_for_point(point))
                 for point in points
@@ -458,8 +459,22 @@ def add_point(project_id: str, body: NewPointInput, user=Depends(admin)):
     writable(project_id)
     key = f"{project_id}:{body.code}"
     if db.get("points", key): raise HTTPException(409, "A point with that code already exists.")
-    point = {**body.model_dump(), "project_id": project_id, "sub": "Added to the collection plan",
+    point = {**body.model_dump(), "project_id": project_id, "sub": body.description.strip() or "Added to the collection plan",
              "type": "qualitative", "unit": "text", "cadence": "annual", "opens": "Now", "lead": "3d",
              "badges": [], "status": "open", "value": "", "history": []}
     db.put("points", key, point)
     return point
+
+@app.post("/api/projects/{project_id}/sections", status_code=201)
+def add_project_section(project_id: str, body: NewSectionInput, user=Depends(admin)):
+    writable(project_id)
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(422, "Enter a section name.")
+    existing = {point.get("section", "").casefold() for point in db.all_docs("points", project_id)}
+    existing.update(section["name"].casefold() for section in db.all_docs("project_sections", project_id))
+    if name.casefold() in existing:
+        raise HTTPException(409, "A section with that name already exists.")
+    section = {"id": f"{project_id}:{name}", "project_id": project_id, "name": name}
+    db.put("project_sections", section["id"], section)
+    return section

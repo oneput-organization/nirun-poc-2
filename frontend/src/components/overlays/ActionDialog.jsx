@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useWorkspace } from "../workspace-context";
 const titles = {
   point: "Add a data point",
@@ -5,9 +6,12 @@ const titles = {
   connection: "Connect a source",
   relay: "Relay a personal note",
   draft: "Edit the draft",
+  section: "Add a planning section",
 };
 export function ActionDialog() {
-  const { actionDialog, closeModal, submitActionForm, busy } = useWorkspace();
+  const { actionDialog, closeModal, submitActionForm, busy, pointSections = [] } = useWorkspace();
+  const [aiDescription, setAiDescription] = useState("");
+  useEffect(() => setAiDescription(""), [actionDialog]);
   if (!actionDialog) return null;
   return (
     <div className="action-backdrop" onClick={closeModal}>
@@ -33,6 +37,7 @@ export function ActionDialog() {
             submitActionForm(Object.fromEntries(new FormData(e.currentTarget)));
           }}
         >
+          {actionDialog === "section" && <label>Section name<input autoFocus required name="name" maxLength={100} placeholder="e.g. Climate and energy" /></label>}
           {actionDialog === "point" && (
             <>
               <label>
@@ -54,6 +59,17 @@ export function ActionDialog() {
                 />
               </label>
               <label>
+                What should be collected?
+                <textarea name="description" value={aiDescription} onChange={(event) => setAiDescription(event.target.value)} rows={3} maxLength={2000} placeholder="Describe the information, reporting period and evidence expected." />
+              </label>
+              <button type="button" className="ai-draft-button" disabled={busy} onClick={(event) => {
+                const form = event.currentTarget.form;
+                const name = form?.elements.namedItem("name")?.value?.trim();
+                const section = form?.elements.namedItem("section")?.value || "the selected section";
+                if (!name) return;
+                setAiDescription(`Collect ${name} for the reporting period under ${section}. Provide the value or a concise narrative, define the scope and calculation method, identify the data source, and explain any assumptions or year-on-year changes. Attach supporting evidence and note any gaps that need follow-up.`);
+              }}>{"✦ Draft collection instructions with AI"}</button>
+              <label>
                 Owner
                 <input
                   required
@@ -68,14 +84,7 @@ export function ActionDialog() {
               <label>
                 Section
                 <select name="section">
-                  {[
-                    "Finance",
-                    "Operations",
-                    "Ventures",
-                    "People",
-                    "Governance",
-                    "Narrative",
-                  ].map((s) => (
+                  {[...new Set([...pointSections, "Finance", "Operations", "Ventures", "People", "Governance", "Narrative"])].map((s) => (
                     <option key={s}>{s}</option>
                   ))}
                 </select>
