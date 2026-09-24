@@ -44,6 +44,17 @@ class NewPointInput(BaseModel):
 class NewSectionInput(BaseModel):
     name: str = Field(min_length=1, max_length=100)
 
+class MetricValueInput(BaseModel):
+    period: str = Field(min_length=1, max_length=30)
+    dimension_values: dict[str, str] = Field(default_factory=dict)
+    value: float | None = None
+    qualifier: Literal["exact", "less_than", "not_applicable", "not_available", "exempt", "proposed", "estimate"] = "exact"
+    display_text: str | None = Field(default=None, max_length=500)
+    qualifier_note: str = Field(default="", max_length=1000)
+    footnote_ids: list[str] = Field(default_factory=list, max_length=20)
+    confirmed_statement: bool = False
+    input_unit: str | None = Field(default=None, max_length=80)
+
 class IntakeQuestionInput(BaseModel):
     id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,64}$")
     label: str = Field(min_length=1, max_length=240)

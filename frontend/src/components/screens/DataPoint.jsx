@@ -38,6 +38,8 @@ export function DataPoint() {
     pointIntakeForm,
     pointIntakeQuestions,
     pointIntakeSubmissions,
+    dataDictionary,
+    submitPointMetricValue,
     roleMember,
     selectedPoint: point,
     selectedPointDemo: demo,
@@ -58,9 +60,11 @@ export function DataPoint() {
   const [origin, setOrigin] = useState("");
   const [linkCopied, setLinkCopied] = useState(false);
   const [questionDraft, setQuestionDraft] = useState(pointIntakeQuestions || []);
+  const [metricDraft, setMetricDraft] = useState({ period: "FY2026", dimension_values: {}, value: "", qualifier: "exact", display_text: "", qualifier_note: "", footnote_ids: "", confirmed_statement: false, input_unit: "" });
 
   useEffect(() => setOrigin(window.location.origin), []);
   useEffect(() => setQuestionDraft(pointIntakeQuestions || []), [point?.code, pointIntakeQuestions]);
+  useEffect(() => setMetricDraft({ period: "FY2026", dimension_values: {}, value: "", qualifier: "exact", display_text: "", qualifier_note: "", footnote_ids: "", confirmed_statement: false, input_unit: point?.unit || "" }), [point?.code, point?.unit]);
 
   if (!isDataPoint) return null;
   if (!point) {
@@ -89,6 +93,21 @@ export function DataPoint() {
   ].sort((a, b) => new Date(b.at || 0) - new Date(a.at || 0));
   const canDraft = contributions.some((entry) => entry.text) || !!point.value?.trim();
   const canSubmit = !isClosedPeriod && (answer.trim() || files.length);
+  const isComputed = point.collection_mode === "computed" || !!point.derived_from;
+  const isImportOnly = point.collection_mode === "import_only";
+  const boundary = (dataDictionary?.boundaries || []).find((item) => item.code === point.boundary_code);
+
+  async function submitMetric(event) {
+    event.preventDefault();
+    await submitPointMetricValue(point.code, {
+      ...metricDraft,
+      value: metricDraft.value === "" ? null : Number(metricDraft.value),
+      display_text: metricDraft.display_text.trim() || null,
+      qualifier_note: metricDraft.qualifier_note,
+      input_unit: metricDraft.input_unit || point.unit,
+      footnote_ids: metricDraft.footnote_ids.split(",").map((item) => item.trim()).filter(Boolean),
+    });
+  }
 
   function submitInput(event) {
     event.preventDefault();
@@ -211,7 +230,7 @@ export function DataPoint() {
           </button>
         ) : null}
 
-        {!roleMember ? <section className={styles.card}>
+        {!roleMember && !isComputed && !isImportOnly ? <section className={styles.card}>
           <div className={styles.cardHead}><h2>Share a fill-in form</h2><span>AI question draft</span></div>
           <p className={styles.muted}>Create a link for the data owner to answer questions tailored to this point and upload supporting evidence. Anyone with the link can respond.</p>
           {intakeLink ? <div className={styles.shareControls}>
@@ -261,15 +280,38 @@ export function DataPoint() {
               ) : null}
             </section>
 
+            {Array.isArray(point.metric_values) ? <section className={styles.card}>
+              <div className={styles.cardHead}><h2>Metric values</h2><span>{point.dimensions?.length ? point.dimensions.join(" × ") : point.unit}</span></div>
+              <p className={styles.muted}>One cell is recorded per reporting period and dimension combination. Qualifiers and footnotes stay with the value.</p>
+              {point.metric_values.length ? <div className={styles.metricTableWrap}><table className={styles.metricTable}><thead><tr><th>Period</th><th>Dimensions</th><th>Value</th><th>Qualifier</th><th>State / notes</th></tr></thead><tbody>{point.metric_values.map((item, index) => <tr key={`${item.period}-${JSON.stringify(item.dimension_values)}-${index}`}><td>{item.period}</td><td>{Object.entries(item.dimension_values || {}).map(([code, value]) => `${code}: ${value}`).join(" · ") || "—"}</td><td>{item.display_text ?? item.value ?? "—"}</td><td>{item.qualifier?.replaceAll("_", " ") || "exact"}</td><td>{item.state || "published reference"}{item.footnote_ids?.length ? ` · ${item.footnote_ids.join(", ")}` : ""}{item.qualifier_note ? ` · ${item.qualifier_note}` : ""}{item.input_unit && item.input_unit !== point.unit ? ` · entered as ${item.input_unit}` : ""}</td></tr>)}</tbody></table></div> : <p className={styles.empty}>{point.restricted_viewers && roleMember ? "Value cells are restricted for this role." : "No value cells have been recorded for this metric yet."}</p>}
+              {point.code === "ENV-S3-02" ? <p className={styles.metricRule}>{metricDraft.period} completeness: {new Set(point.metric_values.filter((item) => item.period === metricDraft.period && item.dimension_values?.S3C).map((item) => item.dimension_values.S3C)).size} / 15 categories have a value or qualifier. Every excluded category needs a reason.</p> : null}
+              {point.valid_answer_rule ? <p className={styles.metricRule}>{point.valid_answer_rule}</p> : null}
+              {isComputed ? <div className={styles.modelNotice}><strong>Derived metric · no owner entry</strong><p>{point.derived_from || "The report marks this value as derived, but the formula still needs confirmation."}</p><small>Inputs: {(point.derived_from?.match(/[A-Z]{2,8}(?:-[A-Z0-9]+)+/g) || []).join(", ") || "formula to be confirmed"}</small></div> : null}
+              {isImportOnly ? <div className={styles.modelNotice}><strong>Imported, read only</strong><p>Source: {point.source_system || point.source_document}. Sustainability owners cannot overwrite this financial-statement value.</p></div> : null}
+              {!isClosedPeriod && !isComputed && !isImportOnly ? <form className={styles.metricForm} onSubmit={submitMetric}>
+                <h3>Submit a metric value</h3>
+                <label>Reporting period<select value={metricDraft.period} onChange={(event) => setMetricDraft({ ...metricDraft, period: event.target.value })}>{["FY2022", "FY2023", "FY2024", "FY2025", "FY2026"].map((period) => <option key={period}>{period}</option>)}</select></label>
+                {(point.dimensions || []).map((code) => { const dimension = (dataDictionary?.dimensions || []).find((item) => item.code === code); return <label key={code}>{dimension?.name || code}<select value={metricDraft.dimension_values[code] || ""} onChange={(event) => setMetricDraft({ ...metricDraft, dimension_values: { ...metricDraft.dimension_values, [code]: event.target.value } })}><option value="">Select {dimension?.name || code}</option>{(dimension?.members || []).map((member) => <option key={member} value={member}>{member}</option>)}</select></label>; })}
+                <label>Qualifier<select value={metricDraft.qualifier} onChange={(event) => setMetricDraft({ ...metricDraft, qualifier: event.target.value, value: ["not_applicable", "not_available", "exempt"].includes(event.target.value) ? "" : metricDraft.value })}>{[["exact","Exact value"],["less_than","Less than"],["not_applicable","Not applicable"],["not_available","Not available"],["exempt","Exempt"],["proposed","Proposed"],["estimate","Estimate"]].map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+                {point.accepted_input_units?.length ? <label>Input unit<select value={metricDraft.input_unit || point.unit} onChange={(event) => setMetricDraft({ ...metricDraft, input_unit: event.target.value })}><option value={point.unit}>{point.unit} (canonical)</option>{point.accepted_input_units.map((item) => <option key={item.unit} value={item.unit}>{item.unit} (× {item.factor} to canonical)</option>)}</select></label> : null}
+                {!(["not_applicable", "not_available", "exempt"].includes(metricDraft.qualifier)) ? <label>Numeric value<input type="number" step="any" value={metricDraft.value} onChange={(event) => setMetricDraft({ ...metricDraft, value: event.target.value })} required /></label> : null}
+                <label>Display text (optional)<input value={metricDraft.display_text} onChange={(event) => setMetricDraft({ ...metricDraft, display_text: event.target.value })} placeholder="e.g. less than 0.01" /></label>
+                {metricDraft.qualifier !== "exact" ? <label>Why this qualifier applies<textarea value={metricDraft.qualifier_note} onChange={(event) => setMetricDraft({ ...metricDraft, qualifier_note: event.target.value })} rows={2} maxLength={1000} required placeholder="Explain the estimate, exemption, proposal or unavailable value." /></label> : null}
+                <label>Footnote IDs (comma separated)<input value={metricDraft.footnote_ids} onChange={(event) => setMetricDraft({ ...metricDraft, footnote_ids: event.target.value })} placeholder="e.g. FN-1, FN-2" /></label>
+                {point.code === "POL-03" && metricDraft.value === "0" ? <label className={styles.requiredToggle}><input type="checkbox" checked={metricDraft.confirmed_statement} onChange={(event) => setMetricDraft({ ...metricDraft, confirmed_statement: event.target.checked })} /> Owner statement confirms this explicit zero</label> : null}
+                <button type="submit" className={styles.primaryButton} disabled={isClosedPeriod || (!!point.dimensions?.length && Object.keys(metricDraft.dimension_values).length === 0)}>Submit value for review</button>
+              </form> : null}
+            </section> : null}
+
             <section className={styles.card}>
               <div className={styles.cardHead}>
                 <h2>Team input and evidence</h2>
                 <span>{contributions.length} input{contributions.length === 1 ? "" : "s"}</span>
               </div>
               <p className={styles.muted}>The owner gives the value or explanation and attaches its source. An admin can review it before the report uses it.</p>
-              {!isClosedPeriod ? (
+              {!isClosedPeriod && !isComputed && !isImportOnly ? (
                 <form onSubmit={submitInput} className={styles.inputForm}>
-                  <label htmlFor="point-answer">Value, explanation, or context</label>
+                  <label htmlFor="point-answer">{point.metric_values ? "Supporting explanation or source note" : "Value, explanation, or context"}</label>
                   <textarea
                     id="point-answer"
                     value={answer}
@@ -341,6 +383,7 @@ export function DataPoint() {
                 <strong>{point.section}</strong>
                 <p>This point contributes to the {point.section.toLowerCase()} section of the report.</p>
               </div>
+              {point.disclosure_refs?.length ? <div className={styles.mapping}><span className={styles.mappingTag}>Report disclosure codes</span><strong>{point.disclosure_refs.join(" · ")}</strong><p>Codes only; confirm current applicability against the reporting standard.</p></div> : null}
               {suggestedMappings.map((mapping) => (
                 <div className={styles.mapping} key={mapping.code}>
                   <span className={styles.mappingTag}>Suggested · partial</span>
@@ -377,6 +420,18 @@ export function DataPoint() {
               ) : null}
               <p className={styles.finePrint}>A proposed mapping is not a claim that the full standard disclosure is complete.</p>
             </section>
+
+            {point.target_series?.length ? <section className={styles.card}><div className={styles.cardHead}><h2>Linked target series</h2><span>Actual vs target</span></div>{point.target_series.map((target) => <article className={styles.targetCard} key={target.code}><div><span>{target.code}</span><strong>{target.name}</strong></div><p>{target.display_text || `${target.value} ${target.unit}`} · comparator: {target.comparator}{target.base_period ? ` · baseline ${target.base_period}` : ""}</p><small>Measured by {(target.measured_by || []).join(" + ") || point.code}</small>{target.values ? <div className={styles.targetValues}>{Object.entries(target.values).map(([period, value]) => <span key={period}>{period}<b>{value} {target.unit} target</b></span>)}</div> : null}</article>)}</section> : null}
+
+            {point.boundary_code || point.source_document || point.method_note || point.quality_checks?.length ? <section className={styles.card}>
+              <div className={styles.cardHead}><h2>Boundary, sources and checks</h2><span>Data dictionary</span></div>
+              {boundary ? <div className={styles.dictionaryBlock}><strong>{boundary.code} · Reporting boundary</strong><p>{boundary.name}</p><small>Catalogue usage: {boundary.used_by.join(", ")}</small></div> : null}
+              <div className={styles.dictionaryGrid}><div><span>Source document</span><strong>{point.source_document?.replaceAll("_", " ") || "Not specified"}</strong></div><div><span>Source system</span><strong>{point.source_system || "Confirm with owner"}</strong></div><div><span>Report location</span><strong>{point.source_anchor || point.report_page || "Not specified"}</strong></div><div><span>External assurance</span><strong>{point.assurance_scope ? "In scope" : "Not marked in scope"}</strong></div><div><span>Display units</span><strong>{(point.display_units || [point.unit]).join(" · ")}</strong></div><div><span>Collection mode</span><strong>{point.collection_mode?.replaceAll("_", " ") || "collect"}</strong></div></div>
+              {point.dimensions?.length ? <div className={styles.dictionaryBlock}><strong>Dimension catalogue</strong>{point.dimensions.map((code) => { const dimension = (dataDictionary?.dimensions || []).find((item) => item.code === code); return <p key={code}><b>{code} · {dimension?.name || code}</b><br /><small>{dimension?.members?.join(" · ") || "Members to be confirmed"}</small></p>; })}</div> : null}
+              {point.target_codes?.length ? <div className={styles.dictionaryBlock}><strong>Target links</strong><p>{point.target_codes.join(" · ")}</p></div> : null}
+              {point.method_note ? <div className={styles.dictionaryBlock}><strong>Method note</strong><p>{point.method_note}</p></div> : null}
+              {point.quality_checks?.length ? <div className={styles.qualityList}><h3>Mock quality checks</h3>{point.quality_checks.map((item) => typeof item === "string" ? <div key={item}><strong>{item}</strong><p>See the relevant catalogue quality fixture.</p></div> : <div key={item.id}><strong>{item.id} · {item.title}</strong><p>{item.detail}</p></div>)}</div> : null}
+            </section> : null}
 
             <section className={styles.card}>
               <div className={styles.cardHead}><h2>Review trail</h2><span>{activity.length} events</span></div>

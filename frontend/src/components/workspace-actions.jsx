@@ -255,6 +255,12 @@ export class WorkspaceActions extends Component {
       await this.refresh();
       this.showToast("AI question list saved. Active links now use these questions.");
     });
+  submitPointMetricValue = (code, metricValue) =>
+    this.request(async () => {
+      await api(`${this.projectPath()}/points/${encodeURIComponent(code)}/metric-values`, { method: "POST", body: metricValue });
+      await this.refresh();
+      this.showToast("Metric value submitted for review.");
+    });
   sendMessage = () => this.sendThread("member", "message");
   sendAssistantMessage = () => this.sendThread("assistant", "assistantMessage");
   sendThread = (thread, field) =>

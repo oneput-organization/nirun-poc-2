@@ -571,20 +571,14 @@ export function buildWorkspaceView() {
     "People",
     "Governance",
     "Narrative",
+    "Health and safety",
+    "Community",
+    "Supply chain",
+    "Customers",
+    "Environment",
   ].map((name) => ({
     name,
-    count:
-      name === "Finance"
-        ? "4 of 6 points"
-        : name === "Operations"
-          ? "3 of 5 points"
-          : name === "Ventures"
-            ? "3 of 5 points"
-            : name === "People"
-              ? "3 of 4 points"
-              : name === "Governance"
-                ? "1 of 3 points"
-                : "2 of 3 points",
+    count: `${rows.filter((r) => r.section === name).length} points`,
     rows: rows.filter((r) => r.section === name),
   }));
   const knownSectionNames = new Set(sections.map((section) => section.name));
@@ -2382,6 +2376,7 @@ export function buildWorkspaceView() {
     projectsList: !P.emptyProjects,
     sections,
     pointSections: sections.map((section) => section.name),
+    dataDictionary: S.data?.dataDictionary || { dimensions: [], boundaries: [] },
     isIrTemplate: isAdm && S.screen === "ir",
     irReport,
     irChapters,
@@ -2414,6 +2409,7 @@ export function buildWorkspaceView() {
     pointIntakeForm: S.data?.pointForms?.find((form) => form.code === selectedPoint?.code),
     pointIntakeSubmissions: (S.data?.intakeSubmissions || []).filter((submission) => submission.code === selectedPoint?.code),
     pointIntakeQuestions: S.data?.pointIntakeQuestions?.[selectedPoint?.code] || [],
+    submitPointMetricValue: this.submitPointMetricValue,
     createPointIntakeLink: this.createPointIntakeLink,
     revokePointIntakeLink: this.revokePointIntakeLink,
     createPointIntakeLink: this.createPointIntakeLink,

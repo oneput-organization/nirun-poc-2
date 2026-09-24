@@ -1,0 +1,9 @@
+# Nirun data dictionary prototype
+
+The Thaioil Integrated Report 2025 dictionary is loaded from `backend/app/nirun_dictionary.json`. The prototype fixture contains all 165 points from Section 5, all 21 dimension definitions, all 7 boundary definitions, the 10 target series, FY2025 published reference values and detailed dimensional examples for the ten supplied mock records. These are report-reference fixtures, not new owner submissions.
+
+The backend installs missing fixture points into each project at startup and copies them into projects created from the FY2025 template. Existing owner values are not replaced on restart. Each point stores `dimensions`, `boundary_code`, `derived_from`, `display_units`, `source_document`, `source_system`, `method_note`, `target_codes`, `disclosure_refs`, `assurance_scope`, `metric_values`, `target_series` and any linked QC fixture.
+
+A submitted metric cell includes period, dimension values, numeric value or qualifier, optional display text, qualifier explanation and footnote IDs. Values are appended to the point's history and the point moves to submitted review. `computed` and `import_only` points cannot receive owner submissions or share-form links. The dimension and boundary catalogs are shown in the point page; dimensional cells are entered one combination at a time. The Scope 3 mock shows the 15-category completion count, and POL-03 requires confirmation when the answer is zero.
+
+The dictionary supplies formulas as metadata for derived examples, but this prototype does not yet run a general formula engine or a year-over-year QC engine. Derived values are read-only, and the seeded FY2025 published reference remains visible. Formula values for future periods need a calculation service. QC fixtures are surfaced as review prompts on the related points; they are not assertions that the published report contains errors.

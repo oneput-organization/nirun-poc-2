@@ -16,7 +16,7 @@ from botocore.exceptions import BotoCoreError, ClientError
 from . import database as db
 from . import object_store
 from .auth import admin, session
-from .models import SessionInput, ProjectInput, PointInput, MemberInput, MessageInput, ActionInput, ExportInput, NewPointInput, NewSectionInput, IntakeQuestionsInput
+from .models import SessionInput, ProjectInput, PointInput, MemberInput, MessageInput, ActionInput, ExportInput, NewPointInput, NewSectionInput, MetricValueInput, IntakeQuestionsInput
 from .exports import generate
 from .seed_exports import initialize_exports
 from .intake import questions_for_point, summarize_answers
@@ -24,10 +24,12 @@ from .intake import questions_for_point, summarize_answers
 @asynccontextmanager
 async def lifespan(app):
     db.initialize()
+    initialize_nirun_dictionary()
     initialize_exports()
     yield
 
 app = FastAPI(title="Oneput API", version="1.0.0", lifespan=lifespan)
+NIRUN_DICTIONARY = json.loads(Path(__file__).with_name("nirun_dictionary.json").read_text())
 
 def now(): return datetime.now(timezone.utc).isoformat()
 def required(collection, key):
@@ -44,6 +46,21 @@ def log(project_id, action, **kwargs):
     item = {"id": uuid4().hex, "project_id": project_id, "action": action, "at": now(), **kwargs}
     db.put("activity", item["id"], item)
     return item
+
+def initialize_nirun_dictionary():
+    """Install the explicitly mocked Thaioil report catalogue into each seeded project."""
+    projects = db.all_docs("projects")
+    with db.connection() as conn:
+        for project in projects:
+            project_id = project["id"]
+            existing_codes = {point["code"] for point in db.all_docs("points", project_id)}
+            for source in NIRUN_DICTIONARY["points"]:
+                if source["code"] in existing_codes:
+                    continue
+                key = f'{project_id}:{source["code"]}'
+                point = {**source, "project_id": project_id, "history": list(source.get("history", []))}
+                db.put("points", key, point, conn)
+                existing_codes.add(source["code"])
 
 @app.get("/api/health")
 def health(): return {"status": "ok"}
@@ -72,10 +89,15 @@ def workspace(project_id: str = "fy2025", user=Depends(session)):
     if user["role"] != "admin":
         forms = [{key: value for key, value in form.items() if key != "token"} for form in forms]
     points = db.all_docs("points", project_id)
+    if user["role"] != "admin":
+        for point in points:
+            if point.get("restricted_viewers"):
+                point["metric_values"] = []
     question_sets = {item["code"]: item["questions"] for item in db.all_docs("point_question_sets", project_id)}
     forms_by_code = {item["code"]: item for item in forms}
     return {"role": user["role"], "projects": db.all_docs("projects"),
             "customSections": db.all_docs("project_sections", project_id),
+            "dataDictionary": {"dimensions": NIRUN_DICTIONARY["dimensions"], "boundaries": NIRUN_DICTIONARY["boundaries"]},
             "points": points, "pointIntakeQuestions": {
                 point["code"]: question_sets.get(point["code"], forms_by_code.get(point["code"], {}).get("questions") or questions_for_point(point))
                 for point in points
@@ -93,6 +115,10 @@ def create_intake_link(project_id: str, code: str, user=Depends(admin)):
     writable(project_id)
     point_key = f"{project_id}:{code}"
     point = required("points", point_key)
+    if point.get("collection_mode") == "computed" or point.get("derived_from"):
+        raise HTTPException(409, "Derived data points do not have an owner fill-in form.")
+    if point.get("collection_mode") == "import_only":
+        raise HTTPException(409, "This data point is imported from its source document and is read only.")
     questions = (db.get("point_question_sets", point_key) or {}).get("questions") or questions_for_point(point)
     form_key = point_key
     form = db.get("point_forms", form_key) or {}
@@ -327,8 +353,14 @@ def update_point(project_id: str, code: str, body: PointInput, user=Depends(sess
         if not point and code == "OPS-04":
             point = {"code": code, "project_id": project_id, "name": "Three short client stories", "owner": "Studio lead", "due": "8 Aug", "opens": "1 Aug", "lead": "3d", "section": "Operations", "type": "qualitative", "unit": "text", "cadence": "annual", "sub": "Three stories with evidence", "badges": [], "status": "submitted", "value": "", "history": []}
         if not point: raise HTTPException(404, "Data point not found.")
+        if body.action == "submit" and (point.get("collection_mode") in ("computed", "import_only") or point.get("derived_from")):
+            raise HTTPException(409, "This data point cannot accept a manually submitted value.")
         old_status = point["status"]
         point["status"] = {"accept": "accepted", "reject": "open", "reask": "open", "override": "accepted", "drop": "dropped", "estimate": "flagged", "replace": "open", "submit": "submitted"}[body.action]
+        if body.action in ("accept", "override", "reject"):
+            cell_state = "accepted" if body.action in ("accept", "override") else "rejected"
+            for cell in point.get("metric_values", []):
+                if cell.get("state") == "submitted": cell["state"] = cell_state
         if body.value: point["value"] = body.value
         if body.action == "replace": point["name"] = "Projects per person"
         point["history"].append({"action": body.action, "reason": body.reason, "value": body.value, "previous_status": old_status, "at": now(), "by": user["role"]})
@@ -464,6 +496,70 @@ def add_point(project_id: str, body: NewPointInput, user=Depends(admin)):
              "badges": [], "status": "open", "value": "", "history": []}
     db.put("points", key, point)
     return point
+
+@app.post("/api/projects/{project_id}/points/{code}/metric-values", status_code=201)
+def submit_metric_value(project_id: str, code: str, body: MetricValueInput, user=Depends(session)):
+    writable(project_id)
+    key = f"{project_id}:{code}"
+    point = required("points", key)
+    if point.get("collection_mode") == "computed" or point.get("derived_from"):
+        raise HTTPException(409, "This value is derived from other data points and cannot be collected directly.")
+    if point.get("collection_mode") == "import_only":
+        raise HTTPException(409, "This value is imported from its source document and is read only.")
+    declared = set(point.get("dimensions") or [])
+    dimensions = {item["code"]: item for item in NIRUN_DICTIONARY["dimensions"]}
+    supplied = body.dimension_values
+    if set(supplied) - declared:
+        raise HTTPException(422, "The selected dimension values do not match this data point.")
+    for dim_code, member in supplied.items():
+        if dim_code not in dimensions or member not in dimensions[dim_code]["members"]:
+            raise HTTPException(422, f"Unknown member '{member}' for dimension {dim_code}.")
+    if declared and not supplied:
+        raise HTTPException(422, "Select at least one dimension value for this metric cell.")
+    if body.value is None and body.qualifier in ("exact", "proposed", "estimate"):
+        raise HTTPException(422, "Enter a numeric value or choose a qualifier that explains why it is unavailable.")
+    if body.qualifier != "exact" and not body.qualifier_note.strip():
+        raise HTTPException(422, "Explain why this value is not applicable, unavailable or exempt.")
+    if body.value == 0 and code == "POL-03" and not body.confirmed_statement:
+        raise HTTPException(422, "Confirm the explicit zero with an owner statement before submitting.")
+    input_unit = body.input_unit or point.get("canonical_unit") or point.get("unit")
+    unit_factors = {point.get("canonical_unit") or point.get("unit"): 1.0}
+    unit_factors.update({item["unit"]: item["factor"] for item in point.get("accepted_input_units", [])})
+    if input_unit not in unit_factors:
+        raise HTTPException(422, "This input unit is not accepted for the data point.")
+    factor = unit_factors[input_unit]
+    value = body.model_dump()
+    value["input_unit"] = input_unit
+    value["conversion_factor"] = factor
+    if body.value is not None:
+        value["value"] = body.value * factor
+    value.update({"state": "submitted", "submittedBy": user["role"], "submittedAt": now()})
+    cells = point.setdefault("metric_values", [])
+    matching_index = next((index for index, existing in enumerate(cells)
+                           if existing.get("period") == body.period and existing.get("dimension_values", {}) == supplied), None)
+    if matching_index is None:
+        cells.append(value)
+    else:
+        previous = cells[matching_index]
+        value["revisions"] = [*(previous.get("revisions") or []), {
+            "value": previous.get("value"), "qualifier": previous.get("qualifier"),
+            "display_text": previous.get("display_text"), "at": previous.get("submittedAt"),
+        }]
+        cells[matching_index] = value
+    point["status"] = "submitted"
+    point["history"].append({"action": "metric_value_submitted", "period": body.period, "dimension_values": supplied, "at": now(), "by": user["role"]})
+    point["value"] = body.display_text or (str(value["value"]) if value["value"] is not None else body.qualifier.replace("_", " "))
+    db.put("points", key, point)
+    queue_id = code.replace("-", "").lower()
+    queue_item = db.get("queue", f"{project_id}:{queue_id}") or {"id": queue_id, "project_id": project_id, "code": code, "name": point["name"], "member": point["owner"]}
+    queue_item.update({"status": "In review", "name": point["name"], "member": point["owner"]})
+    db.put("queue", f"{project_id}:{queue_id}", queue_item)
+    project = required("projects", project_id)
+    active_points = [item for item in db.all_docs("points", project_id) if item.get("status") != "dropped"]
+    project["pct"] = round(100 * sum(item.get("status") == "accepted" for item in active_points) / max(1, len(active_points)))
+    db.put("projects", project_id, project)
+    log(project_id, "metric_value_submitted", code=code, period=body.period, by=user["role"])
+    return value
 
 @app.post("/api/projects/{project_id}/sections", status_code=201)
 def add_project_section(project_id: str, body: NewSectionInput, user=Depends(admin)):
