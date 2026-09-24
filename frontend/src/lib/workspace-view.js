@@ -15,7 +15,7 @@ export function buildWorkspaceView() {
   // ---------- shared nav ----------
   const nav = {
     goProjects: () => this.go("projects"),
-    goAnchor: () => this.go("anchor"),
+    goAnchor: () => this.go("report-setup"),
     goSetup: () => this.go("setup"),
     goOverview: () =>
       S.projectId === "fy2024"

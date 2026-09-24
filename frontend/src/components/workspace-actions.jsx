@@ -63,8 +63,8 @@ export class WorkspaceActions extends Component {
           ...(saved?.role === data.role
             ? {
                 ...saved,
-                screen: this.props.startScreen || saved.screen,
-                aiOpen: (this.props.startScreen || saved.screen) === "setup",
+                screen: saved.screen === "anchor" ? "report-setup" : saved.screen,
+                aiOpen: saved.screen === "setup",
               }
             : {}),
         },
@@ -138,58 +138,22 @@ export class WorkspaceActions extends Component {
       });
     });
   };
-  createProject = () =>
+  createProject = () => this.go("report-setup");
+  finishAnnualReportSetup = (details = {}) =>
     this.request(async () => {
-      const name = this.state.newProjectName?.trim();
-      const description = this.state.newProjectDescription?.trim();
-      if (!name) throw new Error("Enter a project name first.");
-      if (!description)
-        throw new Error("Tell Oneput what you need to collect first.");
+      const name = details.reportName?.trim() || this.state.newProjectName?.trim();
+      const description = details.description?.trim() || this.state.newProjectDescription?.trim();
+      if (!name) throw new Error("Enter a report name before creating the report.");
+      if (!description) throw new Error("Describe what this report needs to collect.");
       const project = await api("/projects", {
         method: "POST",
-        body: {
-          name,
-          description,
-          framework: this.state.projectType || "Annual report",
-        },
+        body: { name, description, framework: "Annual report" },
       });
-      for (const file of this.state.pendingFiles || []) {
-        const form = new FormData();
-        form.append("file", file);
-        await api(`/projects/${project.id}/uploads`, {
-          method: "POST",
-          body: form,
-        });
-      }
-      const isAnnualReport = this.state.projectType === "Annual report";
-      this.setState({ pendingFiles: [], newProjectName: "", newProjectDescription: "" });
       await this.refresh(project.id);
-      if (isAnnualReport) {
-        try {
-          sessionStorage.setItem(
-            "oneput-navigation",
-            JSON.stringify({
-              role: this.state.role,
-              screen: "report-setup",
-              mscreen: this.state.mscreen,
-              projectId: project.id,
-              period: "FY2025",
-            }),
-          );
-        } catch {
-          // The server session and project are enough to load the setup page.
-        }
-        window.location.assign("/reports/ir-2026/setup");
-        return;
-      }
+      this.setState({ annualReportSetupComplete: true });
       this.go("setup");
-      this.showToast("Project created. Your checklist is ready to plan.");
+      this.showToast("Data template created. You can review it before sending it to owners.");
     });
-  finishAnnualReportSetup = () => {
-    this.setState({ annualReportSetupComplete: true });
-    this.go("setup");
-    this.showToast("Data template created. You can review it before sending it to owners.");
-  };
   setField = (name, value) => this.setState({ [name]: value });
   onFieldChange = (event) => {
     const { value, placeholder, type } = event.target;

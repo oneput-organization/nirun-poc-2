@@ -78,7 +78,7 @@ export class WorkspaceController extends IrTemplateActions {
     tChap: false,
     tourDoneDemo: false,
     tPillGone: false,
-    screen: this.props.startScreen ?? "projects",
+    screen: "projects",
     period: "FY2025",
     periodMenu: false,
     bellMenu: false,
@@ -121,13 +121,6 @@ export class WorkspaceController extends IrTemplateActions {
       aiContext: null,
       ...(extra || {}),
     });
-    if (typeof window !== "undefined") {
-      const setupPath = "/reports/ir-2026/setup";
-      if (s === "report-setup" && window.location.pathname !== setupPath)
-        window.history.pushState({ oneputScreen: s }, "", setupPath);
-      else if (s !== "report-setup" && window.location.pathname === setupPath)
-        window.history.pushState({ oneputScreen: s }, "", "/");
-    }
     window.scrollTo(0, 0);
   }
   goM(s) {
