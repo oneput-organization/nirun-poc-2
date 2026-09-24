@@ -298,13 +298,13 @@ export function Planning() {
                                       className="hover-5"
                                     >
                                       <div className="ui-123">{r.code}</div>
-                                      <div className="ui-124">
-                                        <div className="ui-125">
+                                      <div className="ui-124 plan-point-cell">
+                                        <div className="ui-125 plan-point-title-row">
                                           <button
                                             type="button"
                                             onClick={() => openPoint(r.code)}
                                             title={r.name}
-                                            className="ui-126 point-open-link"
+                                            className="ui-126 point-open-link plan-point-name"
                                           >
                                             {r.name}
                                           </button>
@@ -335,7 +335,7 @@ export function Planning() {
                                             </Fragment>
                                           ))}
                                         </div>
-                                        <div title={r.sub} className="ui-127">
+                                        <div title={r.sub} className="ui-127 plan-point-description">
                                           {r.sub}
                                         </div>
                                       </div>

@@ -2593,6 +2593,8 @@ export function buildWorkspaceView() {
     projectName:
       S.data?.projects.find((p) => p.id === S.projectId)?.name ||
       "ONEPUT FY2025 Annual Report",
+    newProjectName: S.newProjectName || "",
+    newProjectDescription: S.newProjectDescription || "",
     currentMember:
       members.find((m) => m.id === S.selectedMember) ||
       members.find((m) => m.id === "acct"),

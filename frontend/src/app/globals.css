@@ -5975,3 +5975,27 @@ button {
     font-size: 11px;
   }
 }
+
+/* Keep planning data point labels readable when descriptions are long. */
+.plan-point-cell {
+  min-width: 0;
+  text-align: left;
+}
+.plan-point-title-row {
+  min-width: 0;
+  justify-content: flex-start;
+  text-align: left;
+}
+.plan-point-name {
+  min-width: 0;
+  max-width: 100%;
+  text-align: left;
+}
+.plan-point-description {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
