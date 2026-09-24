@@ -1,0 +1,301 @@
+[
+  {
+    "screen": "1440-audit-finance",
+    "reference_size": [
+      1440,
+      901
+    ],
+    "actual_size": [
+      1440,
+      901
+    ],
+    "identical": false,
+    "mean_channel_difference": 0.0013156677765445801
+  },
+  {
+    "screen": "1440-audit-partial",
+    "reference_size": [
+      1440,
+      901
+    ],
+    "actual_size": [
+      1440,
+      901
+    ],
+    "identical": false,
+    "mean_channel_difference": 0.0010407674600238419
+  },
+  {
+    "screen": "1440-calendar",
+    "reference_size": [
+      1440,
+      901
+    ],
+    "actual_size": [
+      1440,
+      901
+    ],
+    "identical": false,
+    "mean_channel_difference": 0.01706488675134624
+  },
+  {
+    "screen": "1440-decision",
+    "reference_size": [
+      1440,
+      1189
+    ],
+    "actual_size": [
+      1440,
+      1189
+    ],
+    "identical": false,
+    "mean_channel_difference": 0.00021551724137931034
+  },
+  {
+    "screen": "1440-export",
+    "reference_size": [
+      1440,
+      900
+    ],
+    "actual_size": [
+      1440,
+      900
+    ],
+    "identical": false,
+    "mean_channel_difference": 0.004290637860082305
+  },
+  {
+    "screen": "1440-invite-member",
+    "reference_size": [
+      1440,
+      957
+    ],
+    "actual_size": [
+      1440,
+      957
+    ],
+    "identical": false,
+    "mean_channel_difference": 0.00026776384535005224
+  },
+  {
+    "screen": "1440-member-guide",
+    "reference_size": [
+      1440,
+      900
+    ],
+    "actual_size": [
+      1440,
+      900
+    ],
+    "identical": false,
+    "mean_channel_difference": 0.00061059670781893
+  },
+  {
+    "screen": "1440-members",
+    "reference_size": [
+      1440,
+      957
+    ],
+    "actual_size": [
+      1440,
+      957
+    ],
+    "identical": false,
+    "mean_channel_difference": 0.00026776384535005224
+  },
+  {
+    "screen": "1440-new-project",
+    "reference_size": [
+      1440,
+      900
+    ],
+    "actual_size": [
+      1440,
+      900
+    ],
+    "identical": false,
+    "mean_channel_difference": 0.00028472222222222223
+  },
+  {
+    "screen": "1440-overview",
+    "reference_size": [
+      1440,
+      1189
+    ],
+    "actual_size": [
+      1440,
+      1189
+    ],
+    "identical": false,
+    "mean_channel_difference": 0.00042188424757810795
+  },
+  {
+    "screen": "1440-planning",
+    "reference_size": [
+      1440,
+      1942
+    ],
+    "actual_size": [
+      1440,
+      1942
+    ],
+    "identical": false,
+    "mean_channel_difference": 0.00013195159629248197
+  },
+  {
+    "screen": "1440-projects",
+    "reference_size": [
+      1440,
+      907
+    ],
+    "actual_size": [
+      1440,
+      907
+    ],
+    "identical": false,
+    "mean_channel_difference": 0.00028252480705622934
+  },
+  {
+    "screen": "1440-settings",
+    "reference_size": [
+      1440,
+      1189
+    ],
+    "actual_size": [
+      1440,
+      1189
+    ],
+    "identical": false,
+    "mean_channel_difference": 0.00021551724137931034
+  },
+  {
+    "screen": "390-decision",
+    "reference_size": [
+      702,
+      1646
+    ],
+    "actual_size": [
+      702,
+      1646
+    ],
+    "identical": true,
+    "mean_channel_difference": 0.0
+  },
+  {
+    "screen": "390-export",
+    "reference_size": [
+      722,
+      1119
+    ],
+    "actual_size": [
+      722,
+      1119
+    ],
+    "identical": false,
+    "mean_channel_difference": 0.00450210706202032
+  },
+  {
+    "screen": "390-invite-member",
+    "reference_size": [
+      702,
+      1316
+    ],
+    "actual_size": [
+      702,
+      1316
+    ],
+    "identical": true,
+    "mean_channel_difference": 0.0
+  },
+  {
+    "screen": "390-member-guide",
+    "reference_size": [
+      390,
+      900
+    ],
+    "actual_size": [
+      390,
+      900
+    ],
+    "identical": true,
+    "mean_channel_difference": 0.0
+  },
+  {
+    "screen": "390-members",
+    "reference_size": [
+      702,
+      1316
+    ],
+    "actual_size": [
+      702,
+      1316
+    ],
+    "identical": true,
+    "mean_channel_difference": 0.0
+  },
+  {
+    "screen": "390-new-project",
+    "reference_size": [
+      390,
+      900
+    ],
+    "actual_size": [
+      390,
+      900
+    ],
+    "identical": true,
+    "mean_channel_difference": 0.0
+  },
+  {
+    "screen": "390-overview",
+    "reference_size": [
+      702,
+      1646
+    ],
+    "actual_size": [
+      702,
+      1646
+    ],
+    "identical": true,
+    "mean_channel_difference": 0.0
+  },
+  {
+    "screen": "390-planning",
+    "reference_size": [
+      702,
+      935
+    ],
+    "actual_size": [
+      702,
+      935
+    ],
+    "identical": true,
+    "mean_channel_difference": 0.0
+  },
+  {
+    "screen": "390-projects",
+    "reference_size": [
+      390,
+      1875
+    ],
+    "actual_size": [
+      390,
+      1875
+    ],
+    "identical": false,
+    "mean_channel_difference": 0.011611623931623932
+  },
+  {
+    "screen": "390-settings",
+    "reference_size": [
+      702,
+      1646
+    ],
+    "actual_size": [
+      702,
+      1646
+    ],
+    "identical": true,
+    "mean_channel_difference": 0.0
+  }
+]

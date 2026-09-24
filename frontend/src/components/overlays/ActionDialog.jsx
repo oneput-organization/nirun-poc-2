@@ -4,6 +4,7 @@ const titles = {
   schedule: "Move the project deadline",
   connection: "Connect a source",
   relay: "Relay a personal note",
+  draft: "Edit the draft",
 };
 export function ActionDialog() {
   const { actionDialog, closeModal, submitActionForm, busy } = useWorkspace();
@@ -114,6 +115,18 @@ export function ActionDialog() {
                   <option>Weekly</option>
                   <option>Monthly</option>
                 </select>
+              </label>
+            </>
+          )}
+          {actionDialog === "draft" && (
+            <>
+              <label>
+                Revised draft
+                <textarea autoFocus required name="text" rows={5} />
+              </label>
+              <label>
+                Reason for this change
+                <textarea required name="reason" rows={2} />
               </label>
             </>
           )}

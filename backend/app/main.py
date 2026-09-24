@@ -11,10 +11,12 @@ from . import database as db
 from .auth import admin, session
 from .models import SessionInput, ProjectInput, PointInput, MemberInput, MessageInput, ActionInput, ExportInput, NewPointInput
 from .exports import generate
+from .seed_exports import initialize_exports
 
 @asynccontextmanager
 async def lifespan(app):
     db.initialize()
+    initialize_exports()
     yield
 
 app = FastAPI(title="Oneput API", version="1.0.0", lifespan=lifespan)
@@ -48,7 +50,7 @@ def sign_in(body: SessionInput, response: Response):
     return {"role": body.role, "mode": "demo"}
 
 @app.delete("/api/session")
-def sign_out(response: Response, oneput_session: str | None = Cookie(default=None), user=Depends(session)):
+def sign_out(response: Response, oneput_session: str | None = Cookie(default=None)):
     # The caller's cookie is invalidated server-side as well as in the browser.
     with db.connection() as conn:
         conn.execute("DELETE FROM sessions WHERE token=?", (oneput_session,))

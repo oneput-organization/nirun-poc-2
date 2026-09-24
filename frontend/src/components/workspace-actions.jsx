@@ -446,6 +446,15 @@ export class WorkspaceActions extends Component {
           method: "POST",
           body: values,
         });
+      else if (kind === "draft")
+        await api(`${this.projectPath()}/points/OPS-04`, {
+          method: "PATCH",
+          body: {
+            action: "override",
+            value: values.text,
+            reason: values.reason,
+          },
+        });
       else if (kind === "schedule")
         await api(this.projectPath(), {
           method: "PATCH",
@@ -583,12 +592,17 @@ export class WorkspaceActions extends Component {
             pending: true,
           }))
         : this.state.data?.uploads || [],
-    actionDialog: ["point", "schedule", "connection", "relay"].includes(
-      this.state.modal,
-    )
+    actionDialog: [
+      "point",
+      "schedule",
+      "connection",
+      "relay",
+      "draft",
+    ].includes(this.state.modal)
       ? this.state.modal
       : null,
     submitActionForm: this.submitActionForm,
+    editDraft: () => this.setState({ modal: "draft" }),
     launchDisabled: this.launchProject,
     launchRemaining: this.launchRemaining(),
   });

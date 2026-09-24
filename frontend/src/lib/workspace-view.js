@@ -1332,35 +1332,25 @@ export function buildWorkspaceView() {
       revoke: () => {},
     },
   ].map((h) => ({ ...h, noShare: !h.share }));
-  const exportHistory = [
-    ...(S.data?.exports || [])
-      .slice()
-      .reverse()
-      .map((item) => ({
+  const exportHistory = S.data
+    ? [...S.data.exports]
+        .sort(
+          (a, b) =>
+            new Date(b.when.replace(",", "")) -
+            new Date(a.when.replace(",", "")),
+        )
+        .map((item) => ({
+          ...item,
+          noShare: !item.share,
+          revoke: () => this.revokeShare(item),
+          download: () => this.downloadExport(item),
+          shareLink: () => this.shareExport(item),
+        }))
+    : referenceExportHistory.map((item) => ({
         ...item,
-        noShare: !item.share,
-        revoke: () => this.revokeShare(item),
-        download: () => this.downloadExport(item),
-        shareLink: () => this.shareExport(item),
-      })),
-    ...referenceExportHistory.map((item) => ({
-      ...item,
-      share: false,
-      noShare: true,
-      download: () =>
-        this.createExport(
-          item.file.endsWith(".xlsx")
-            ? "Excel"
-            : item.file.endsWith(".pdf")
-              ? "PDF"
-              : "Report",
-        ),
-      shareLink: () =>
-        this.showToast(
-          "Download this historical snapshot first, then share the generated copy above.",
-        ),
-    })),
-  ];
+        download: () => this.showToast("Sign in to download this export."),
+        shareLink: () => this.showToast("Sign in to create a share link."),
+      }));
   // ---------- header ----------
   const screenLabels = {
     setup: "Planning",

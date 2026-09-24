@@ -17,6 +17,7 @@ def login(client, role="admin"):
     assert client.post("/api/session", json={"role": role}).status_code == 200
 
 def test_auth_logout(client):
+    assert client.delete("/api/session").status_code == 200
     assert client.get("/api/workspace").status_code == 401
     login(client)
     token = client.cookies.get("oneput_session")

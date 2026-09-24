@@ -9,6 +9,11 @@ async function signIn(page, role = "Admin") {
   await welcome.waitFor({ state: "visible" });
   await welcome.click();
   await page.getByRole("button", { name: role, exact: true }).click();
+  if (role === "Admin")
+    await expect(
+      page.getByRole("heading", { name: "Projects", exact: true }),
+    ).toBeVisible();
+  else await expect(page.locator('[data-screen-label="Invite"]')).toBeVisible();
 }
 async function overview(page) {
   await signIn(page);
@@ -117,13 +122,12 @@ test("member onboarding, guide, chat, and mobile workspace", async ({
     .click();
   await page.getByText("FY2025 Annual Report", { exact: true }).first().click();
   await expect(page.locator('[data-screen-label="Member main"]')).toBeVisible();
+  const update = `Here is my project update ${Date.now()}.`;
   await page
     .getByPlaceholder("Type, or drop a file, I will read it")
-    .fill("Here is my project update.");
+    .fill(update);
   await page.getByRole("button", { name: "Send", exact: true }).click();
-  await expect(
-    page.getByText("Here is my project update.", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText(update, { exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -174,4 +178,61 @@ test("invites a member and downloads a generated export", async ({ page }) => {
   await page.getByRole("button", { name: /Generate/ }).click();
   expect((await download).suggestedFilename()).toMatch(/\.csv$/);
   await expect(page.getByText(/ONEPUT-fy2025-.*\.csv/).first()).toBeVisible();
+});
+
+test("adds a point and saves an audit override with its reason", async ({
+  page,
+}) => {
+  await signIn(page);
+  const name = `Browser audit ${Date.now()}`;
+  const response = await page.request.post("/api/projects", {
+    data: { name, description: "Audit integration test" },
+  });
+  const project = await response.json();
+  await page.request.patch(`/api/projects/${project.id}`, {
+    data: { s: "live" },
+  });
+  await page.reload();
+  await page.getByText(name, { exact: true }).click();
+  await page
+    .getByRole("button", { name: "Edit the plan", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Add point", exact: true }).click();
+  await page.getByRole("textbox", { name: "Code", exact: true }).fill("OPS-99");
+  await page
+    .getByRole("textbox", { name: "Name", exact: true })
+    .fill("Browser evidence point");
+  await page
+    .getByRole("textbox", { name: "Owner", exact: true })
+    .fill("Studio lead");
+  await page
+    .getByRole("textbox", { name: "Due date", exact: true })
+    .fill("29 Aug");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(
+    page.getByText("Browser evidence point", { exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: name, exact: true }).click();
+  await page.getByRole("button", { name: "2 more", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Review in audit", exact: true })
+    .click();
+  await page.getByRole("button", { name: "By member", exact: true }).click();
+  await page.getByRole("button", { name: "Edit value", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "Override value", exact: true })
+    .fill("Studio 100 · Ventures 200");
+  await page
+    .getByPlaceholder("Reason, required")
+    .fill("Checked against the signed statement");
+  await page
+    .getByRole("button", { name: "Save override", exact: true })
+    .click();
+  await expect(page.getByLabel("Review history")).toContainText(
+    "Studio 100 · Ventures 200",
+  );
+  await page.reload();
+  await expect(page.getByLabel("Review history")).toContainText(
+    "Checked against the signed statement",
+  );
 });

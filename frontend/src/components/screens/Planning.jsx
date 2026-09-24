@@ -322,7 +322,8 @@ export function Planning() {
                                                   lineHeight: "15px",
                                                 }}
                                               >
-                                                {b.icon + " " + b.label}
+                                                <span>{b.icon}</span>
+                                                <span>{b.label}</span>
                                               </span>
                                             </Fragment>
                                           ))}

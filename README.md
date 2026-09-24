@@ -53,7 +53,7 @@ The backend supports demo sessions; project creation and archiving; adding data 
 
 For the Thai member view, open `/?persona=accountant`, dismiss the welcome, and choose Member. Tours also support `/?guide=overview`, `/?guide=how`, and a one-based `step` query parameter.
 
-This is a local proof of concept. **Sign-in is deliberately a demo role selector**, including the prototype's Google/Microsoft buttons. AI replies use deterministic local rules; no LLM credentials are required. Email, Line, Slack, Teams, and system integrations retain their UI, but outbound work is stored in a local activity/outbox record and source configuration is saved locally. No external messages are sent and no provider is connected. Production identity, organization isolation, provider OAuth, background delivery workers, and document extraction are future integration work. Existing narrative/sample values and historical exports are demo fixtures; downloading a historical entry creates a current snapshot in that entry's format.
+This is a local proof of concept. **Sign-in is deliberately a demo role selector**, including the prototype's Google/Microsoft buttons. AI replies use deterministic local rules; no LLM credentials are required. Email, Line, Slack, Teams, and system integrations retain their UI, but outbound work is stored in a local activity/outbox record and source configuration is saved locally. No external messages are sent and no provider is connected. Production identity, organization isolation, provider OAuth, background delivery workers, and document extraction are future integration work. Existing narrative/sample values are demo fixtures. The three historical export entries are seeded as real downloadable files, including a revocable example share link.
 
 ## Local development
 
@@ -97,3 +97,5 @@ npm run test:e2e
 Set `APP_URL` to test a different frontend address. Browser tests create demo records in the running database; use a separate Compose project/volume for a clean test environment. Backend tests use isolated temporary databases and files.
 
 Deployment follows [Next.js standalone output](https://nextjs.org/docs/app/api-reference/config/next-config-js/output); the backend uses the standard SQLite approach described in the [FastAPI database guide](https://fastapi.tiangolo.com/tutorial/sql-databases/).
+
+Detailed results and repeatable screenshot comparison commands are in [docs/verification.md](docs/verification.md).

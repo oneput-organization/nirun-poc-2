@@ -39,6 +39,7 @@ export function Audit() {
     toastReask,
     toastReject,
     toggleOverride,
+    editDraft,
   } = useWorkspace();
   return (
     <>
@@ -348,6 +349,7 @@ export function Audit() {
                               defaultValue={
                                 "Studio 3,240,000 · Ventures 940,000"
                               }
+                              aria-label="Override value"
                               className="ui-351"
                               onChange={(e) =>
                                 setField("overrideValue", e.target.value)
@@ -475,7 +477,7 @@ export function Audit() {
                             {"Accept"}
                           </button>
                           <button
-                            onClick={toggleOverride}
+                            onClick={editDraft}
                             className="ui-358 hover-2"
                           >
                             {"Edit the draft"}
