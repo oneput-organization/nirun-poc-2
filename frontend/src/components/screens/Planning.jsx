@@ -106,7 +106,6 @@ export function Planning() {
                 </div>
               </>
             ) : null}
-          </div>
           <div
             style={{
               padding: "4px " + gutPx + " 0",
@@ -540,6 +539,7 @@ export function Planning() {
                 </div>
               </>
             ) : null}
+          </div>
           </div>
         </>
       ) : null}
