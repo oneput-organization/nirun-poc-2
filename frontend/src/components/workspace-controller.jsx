@@ -1,5 +1,6 @@
 "use client";
 import { buildWorkspaceView } from "@/lib/workspace-view";
+import { makePointDraft, pointStatuses } from "@/lib/point-demo";
 import { WorkspaceActions } from "./workspace-actions";
 import { WorkspaceContext } from "./workspace-context";
 import { tours } from "@/data/tours";
@@ -10,6 +11,7 @@ import { Projects } from "./screens/Projects";
 import { NewProject } from "./screens/NewProject";
 import { ProjectHeader } from "./layout/ProjectHeader";
 import { Planning } from "./screens/Planning";
+import { DataPoint } from "./screens/DataPoint";
 import { Overview } from "./screens/Overview";
 import { Calendar } from "./screens/Calendar";
 import { Members } from "./screens/Members";
@@ -95,6 +97,9 @@ export class WorkspaceController extends WorkspaceActions {
     overrideReason: "",
     fin02Warn: false,
     schemaPreview: false,
+    pointCode: null,
+    pointBack: "setup",
+    pointDemo: {},
     auditBack: "overview",
     trackerConfirmed: {},
     shareRevoked: false,
@@ -125,6 +130,13 @@ export class WorkspaceController extends WorkspaceActions {
     window.scrollTo(0, 0);
   }
   componentDidMount() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem("oneput-point-demo-v1") || "{}");
+      if (saved && typeof saved === "object" && !Array.isArray(saved))
+        this.setState({ pointDemo: saved });
+    } catch {
+      // Invalid browser demo data starts fresh.
+    }
     if (
       !new URLSearchParams(window.location.search).has("guide") &&
       !new URLSearchParams(window.location.search).has("tour")
@@ -183,6 +195,13 @@ export class WorkspaceController extends WorkspaceActions {
       });
   }
   componentDidUpdate(previousProps, previousState) {
+    if (previousState.pointDemo !== this.state.pointDemo) {
+      try {
+        sessionStorage.setItem("oneput-point-demo-v1", JSON.stringify(this.state.pointDemo));
+      } catch {
+        // The prototype remains usable when browser storage is unavailable.
+      }
+    }
     const { role, screen, mscreen, projectId, period } = this.state;
     if (
       role &&
@@ -398,6 +417,95 @@ export class WorkspaceController extends WorkspaceActions {
     this.setState({ toast: t, cardMenu: false, rowMenu: null });
     this._tt = setTimeout(() => this.setState({ toast: null }), 2600);
   }
+  pointDemoKey(code) {
+    return `${this.state.projectId}:${code}`;
+  }
+  updatePointDemo(code, update) {
+    this.setState((previous) => {
+      const key = `${previous.projectId}:${code}`;
+      const current = previous.pointDemo[key] || {};
+      const changes = typeof update === "function" ? update(current) : update;
+      return {
+        pointDemo: {
+          ...previous.pointDemo,
+          [key]: { ...current, ...changes },
+        },
+      };
+    });
+  }
+  openPoint = (code) => {
+    if (!code || !this.state.data?.points?.some((point) => point.code === code)) {
+      this.showToast("That data point is not in this report yet.");
+      return;
+    }
+    this.go("point", {
+      pointCode: code,
+      pointBack: this.state.role === "member" ? "member" : this.state.screen,
+    });
+  };
+  closePoint = () => {
+    this.go(this.state.pointBack === "member" ? "projects" : this.state.pointBack || "setup");
+  };
+  setPointOwner = (code, owner) => {
+    this.updatePointDemo(code, (current) => ({
+      owner,
+      events: [
+        { id: crypto.randomUUID(), label: `Owner changed to ${owner}`, at: new Date().toISOString() },
+        ...(current.events || []),
+      ],
+    }));
+  };
+  setPointStatus = (code, status) => {
+    if (!pointStatuses.some((item) => item.value === status)) return;
+    this.updatePointDemo(code, (current) => ({
+      status,
+      events: [
+        { id: crypto.randomUUID(), label: `Status changed to ${pointStatuses.find((item) => item.value === status).label}`, at: new Date().toISOString() },
+        ...(current.events || []),
+      ],
+    }));
+  };
+  addPointContribution = (code, text, files) => {
+    if (!text.trim() && !files.length) return;
+    this.updatePointDemo(code, (current) => ({
+      status: "submitted",
+      draft: "",
+      contributions: [
+        {
+          id: crypto.randomUUID(),
+          text: text.trim(),
+          files,
+          by: this.state.role === "member" ? "Team member" : "Admin",
+          at: new Date().toISOString(),
+        },
+        ...(current.contributions || []),
+      ],
+      events: [
+        { id: crypto.randomUUID(), label: "Input sent for review", at: new Date().toISOString() },
+        ...(current.events || []),
+      ],
+    }));
+    this.showToast("Input saved to this mock data point.");
+  };
+  addPointMapping = (code, mapping) => {
+    if (!mapping.framework.trim() || !mapping.disclosure.trim()) return;
+    this.updatePointDemo(code, (current) => ({
+      mappings: [
+        ...(current.mappings || []),
+        { ...mapping, id: crypto.randomUUID(), state: "Proposed" },
+      ],
+    }));
+  };
+  generatePointDraft = (point) => {
+    const code = point.code;
+    const current = this.state.pointDemo[this.pointDemoKey(code)] || {};
+    const draft = makePointDraft(point, current.contributions || [], this.state.period);
+    if (!draft) {
+      this.showToast("Add written input before creating a draft preview.");
+      return;
+    }
+    this.updatePointDemo(code, { draft });
+  };
   renderVals() {
     return buildWorkspaceView.call(this);
   }
@@ -412,6 +520,7 @@ export class WorkspaceController extends WorkspaceActions {
           <NewProject />
           <ProjectHeader />
           <Planning />
+          <DataPoint key={`${this.state.projectId}:${this.state.pointCode || "none"}`} />
           <Overview />
           <Calendar />
           <Members />

@@ -6,6 +6,7 @@ export function Overview() {
     readiness,
     memberCount,
     totalPointCount,
+    sections,
     acceptedPointCount,
     projectName,
     cell,
@@ -22,6 +23,7 @@ export function Overview() {
     needsMoreLabel,
     needsShown,
     ovBottomCols,
+    openPoint,
     setupPadR,
     statMore,
     toggleNeeds,
@@ -142,6 +144,75 @@ export function Overview() {
                 ))}
               </div>
             </div>
+            <section className="overview-plan" aria-labelledby="overview-plan-title">
+              <div className="overview-plan-heading">
+                <div>
+                  <h2 id="overview-plan-title">Annual report plan</h2>
+                  <p>{`${totalPointCount} points across ${sections.length} report sections`}</p>
+                </div>
+                <button onClick={goSetup} className="ui-192 hover-10">
+                  {"Edit the full plan →"}
+                </button>
+              </div>
+              <div className="overview-plan-scroll">
+                <div
+                  className="overview-plan-table"
+                  role="table"
+                  aria-label="Annual report plan by section"
+                >
+                  <div className="overview-plan-columns" role="row">
+                    <span role="columnheader">Code</span>
+                    <span role="columnheader">Point</span>
+                    <span role="columnheader">Unit or format</span>
+                    <span role="columnheader">Due</span>
+                    <span role="columnheader">Owner</span>
+                  </div>
+                  {sections.map((section, sectionIndex) => (
+                    <div
+                      className="overview-plan-section"
+                      role="rowgroup"
+                      key={section.id ?? section.name ?? sectionIndex}
+                    >
+                      <div className="overview-plan-section-title" role="row">
+                        <span role="rowheader">{section.name}</span>
+                        <span aria-label={`${section.rows.length} points`}>
+                          {section.rows.length}
+                        </span>
+                      </div>
+                      {section.rows.map((point, pointIndex) => (
+                        <div
+                          className="overview-plan-point"
+                          role="row"
+                          key={point.id ?? point.code ?? pointIndex}
+                        >
+                          <span className="overview-plan-code" role="cell">
+                            {point.code}
+                          </span>
+                          <span className="overview-plan-name" role="cell">
+                            <button
+                              type="button"
+                              className="point-open-link"
+                              onClick={() => openPoint(point.code)}
+                              aria-label={`Open ${point.code}: ${point.name}`}
+                            >
+                              <strong>{point.name}</strong>
+                              {point.sub ? <small>{point.sub}</small> : null}
+                            </button>
+                          </span>
+                          <span className="overview-plan-unit" role="cell">
+                            {point.unit || point.type}
+                          </span>
+                          <span role="cell">{point.due || "Not set"}</span>
+                          <span className="overview-plan-owner" role="cell">
+                            {point.owner || "Unassigned"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
             <div data-tour={"ov-grid"} className="ui-181">
               <div className="ui-182">
                 <span className="ui-114">{"Coverage, by due window"}</span>{" "}

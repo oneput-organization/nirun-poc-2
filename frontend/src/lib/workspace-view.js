@@ -1,3 +1,5 @@
+import { pointCollectionPrompt, pointStatus, suggestedPointMappings } from "@/lib/point-demo";
+
 export function buildWorkspaceView() {
   const S = this.state,
     P = this.props;
@@ -553,7 +555,14 @@ export function buildWorkspaceView() {
     })),
     status: r[12],
   }));
-  const rows = S.data?.points || referenceRows;
+  const rows = (S.data?.points || referenceRows).map((row) => {
+    const demo = S.pointDemo?.[`${S.projectId}:${row.code}`];
+    return demo
+      ? { ...row, owner: demo.owner || row.owner, status: demo.status || row.status }
+      : row;
+  });
+  const selectedPoint = rows.find((row) => row.code === S.pointCode);
+  const selectedPointDemo = S.pointDemo?.[`${S.projectId}:${S.pointCode}`] || {};
   const sections = [
     "Finance",
     "Operations",
@@ -1770,7 +1779,7 @@ export function buildWorkspaceView() {
     isAccount: isMem && S.mscreen === "account",
     isChannel: isMem && S.mscreen === "channel",
     isList: isMem && S.mscreen === "list",
-    isMain: isMem && S.mscreen === "main",
+    isMain: isMem && S.mscreen === "main" && S.screen !== "point",
     goAccount: () => this.goM("account"),
     goChannel: () => this.goM("channel"),
     goList: () => this.goM("list"),
@@ -2329,6 +2338,21 @@ export function buildWorkspaceView() {
     projectsEmpty: !!P.emptyProjects,
     projectsList: !P.emptyProjects,
     sections,
+    pointCodes: rows.map((row) => row.code),
+    isDataPoint: S.role !== null && S.screen === "point",
+    selectedPoint,
+    selectedPointDemo,
+    selectedPointStatus: pointStatus(selectedPoint?.status),
+    pointPrompt: pointCollectionPrompt(selectedPoint),
+    suggestedMappings: suggestedPointMappings(selectedPoint),
+    pointOwners: [...new Set(rows.map((row) => row.owner.replace(/^⚡\s*/, "")))],
+    openPoint: this.openPoint,
+    closePoint: this.closePoint,
+    setPointOwner: this.setPointOwner,
+    setPointStatus: this.setPointStatus,
+    addPointContribution: this.addPointContribution,
+    addPointMapping: this.addPointMapping,
+    generatePointDraft: this.generatePointDraft,
     windows,
     matrixRows,
     needsYou,
@@ -2379,7 +2403,7 @@ export function buildWorkspaceView() {
     exportFormats,
     exportHistory,
     exportFormat: S.exportFormat,
-    screenLabel: screenLabels[S.screen] || "",
+    screenLabel: S.screen === "point" ? S.pointCode || "Data point" : screenLabels[S.screen] || "",
     periodMenu: S.periodMenu,
     periodRows,
     periodName: S.period,

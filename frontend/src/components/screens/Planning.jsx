@@ -17,6 +17,7 @@ export function Planning() {
     launchDisabled,
     needsShown,
     onAction,
+    openPoint,
     openOps03,
     phoneAdmin,
     planAiBg,
@@ -294,12 +295,14 @@ export function Planning() {
                                       <div className="ui-123">{r.code}</div>
                                       <div className="ui-124">
                                         <div className="ui-125">
-                                          <span
+                                          <button
+                                            type="button"
+                                            onClick={() => openPoint(r.code)}
                                             title={r.name}
-                                            className="ui-126"
+                                            className="ui-126 point-open-link"
                                           >
                                             {r.name}
-                                          </span>
+                                          </button>
                                           {r.badges.map((b, index) => (
                                             <Fragment
                                               key={b.id ?? b.code ?? index}

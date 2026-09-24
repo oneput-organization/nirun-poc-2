@@ -38,9 +38,11 @@ export function MemberWorkspace() {
     message,
     notStarted,
     onAction,
+    openPoint,
     openGuideExpand,
     openList,
     points,
+    pointCodes,
     projectTitle,
     sendMessage,
     setField,
@@ -146,6 +148,15 @@ export function MemberWorkspace() {
                   <div title={guide.what} className="ui-545">
                     {guide.what}
                   </div>
+                  {pointCodes.includes(focusCode) ? (
+                    <button
+                      type="button"
+                      onClick={() => openPoint(focusCode)}
+                      className="point-open-link"
+                    >
+                      {"Open this data point →"}
+                    </button>
+                  ) : null}
                   <div className="ui-546">
                     <span className="ui-108">{guide.due}</span>
                     <button

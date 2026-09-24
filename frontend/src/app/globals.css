@@ -5837,3 +5837,117 @@ button {
 .live-chat:empty {
   display: none;
 }
+
+.overview-plan {
+  margin: 16px 0;
+  overflow: hidden;
+  border: 1px solid #e6e6e3;
+  border-radius: 8px;
+  background: #fff;
+}
+.overview-plan-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e6e6e3;
+}
+.overview-plan-heading h2 {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+.overview-plan-heading p {
+  margin: 3px 0 0;
+  color: #9c9c96;
+  font-size: 11px;
+  line-height: 16px;
+}
+.overview-plan-heading button {
+  flex-shrink: 0;
+}
+.overview-plan-scroll {
+  overflow-x: auto;
+}
+.overview-plan-table {
+  min-width: 760px;
+  font-size: 12px;
+}
+.overview-plan-columns,
+.overview-plan-point {
+  display: grid;
+  grid-template-columns: 64px minmax(240px, 1fr) minmax(100px, 0.55fr) 84px minmax(110px, 0.55fr);
+  align-items: center;
+}
+.overview-plan-columns {
+  min-height: 34px;
+  background: #f7f7f5;
+  color: #6b6b66;
+  font-weight: 500;
+}
+.overview-plan-columns span {
+  padding: 8px 10px;
+}
+.overview-plan-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 30px;
+  padding: 0 14px;
+  border-top: 1px solid #e6e6e3;
+  background: #fafaf8;
+  font-size: 11px;
+  font-weight: 700;
+}
+.overview-plan-section-title > span:last-child {
+  color: #9c9c96;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  font-weight: 400;
+}
+.overview-plan-point {
+  min-height: 48px;
+  border-top: 1px solid #f1f1ef;
+}
+.overview-plan-point > span {
+  min-width: 0;
+  padding: 7px 10px;
+}
+.overview-plan-code {
+  color: #9c9c96;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px;
+}
+.overview-plan-name strong,
+.overview-plan-name small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.overview-plan-name strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.overview-plan-name small {
+  margin-top: 2px;
+  color: #9c9c96;
+  font-size: 10.5px;
+}
+.overview-plan-unit,
+.overview-plan-owner {
+  overflow: hidden;
+  color: #6b6b66;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .overview-plan-heading {
+    align-items: flex-start;
+  }
+  .overview-plan-heading button {
+    font-size: 11px;
+  }
+}
