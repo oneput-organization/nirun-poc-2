@@ -308,7 +308,7 @@ export function Planning() {
                                           >
                                             {r.name}
                                           </button>
-                                          {r.badges.map((b, index) => (
+                                          {(Array.isArray(r.badges) ? r.badges : []).map((b, index) => (
                                             <Fragment
                                               key={b.id ?? b.code ?? index}
                                             >

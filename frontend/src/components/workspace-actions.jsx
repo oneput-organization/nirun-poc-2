@@ -61,7 +61,11 @@ export class WorkspaceActions extends Component {
           role: data.role,
           ...(data.preferences?.workspace || {}),
           ...(saved?.role === data.role
-            ? { ...saved, aiOpen: saved.screen === "setup" }
+            ? {
+                ...saved,
+                screen: this.props.startScreen || saved.screen,
+                aiOpen: (this.props.startScreen || saved.screen) === "setup",
+              }
             : {}),
         },
         () => {
@@ -90,7 +94,11 @@ export class WorkspaceActions extends Component {
   signOut = () =>
     this.request(async () => {
       await api("/session", { method: "DELETE" });
-      sessionStorage.removeItem("oneput-navigation");
+      try {
+        sessionStorage.removeItem("oneput-navigation");
+      } catch {
+        // The server session is already invalidated; local storage is optional.
+      }
       this.setState({
         role: null,
         data: null,
@@ -153,10 +161,29 @@ export class WorkspaceActions extends Component {
           body: form,
         });
       }
+      const isAnnualReport = this.state.projectType === "Annual report";
       this.setState({ pendingFiles: [], newProjectName: "", newProjectDescription: "" });
       await this.refresh(project.id);
-      this.go(this.state.projectType === "Annual report" ? "report-setup" : "setup");
-      this.showToast(this.state.projectType === "Annual report" ? "Project created. Set up the report template in five steps." : "Project created. Your checklist is ready to plan.");
+      if (isAnnualReport) {
+        try {
+          sessionStorage.setItem(
+            "oneput-navigation",
+            JSON.stringify({
+              role: this.state.role,
+              screen: "report-setup",
+              mscreen: this.state.mscreen,
+              projectId: project.id,
+              period: "FY2025",
+            }),
+          );
+        } catch {
+          // The server session and project are enough to load the setup page.
+        }
+        window.location.assign("/reports/ir-2026/setup");
+        return;
+      }
+      this.go("setup");
+      this.showToast("Project created. Your checklist is ready to plan.");
     });
   finishAnnualReportSetup = () => {
     this.setState({ annualReportSetupComplete: true });

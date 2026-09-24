@@ -182,7 +182,7 @@ export function NewProject() {
                     </button>
                   </div>
                   <button onClick={startPlanning} className="ui-12 hover-1">
-                    {"Start planning"}
+                    {projectType === "Annual report" ? "Create the report" : "Start planning"}
                   </button>
                 </div>
                 <p className="ui-76">

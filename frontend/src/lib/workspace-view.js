@@ -558,9 +558,14 @@ export function buildWorkspaceView() {
   }));
   const rows = (S.data?.points || referenceRows).map((row) => {
     const demo = S.pointDemo?.[`${S.projectId}:${row.code}`];
+    const normalizedRow = {
+      ...row,
+      // Older and newly created project records do not always include optional badges.
+      badges: Array.isArray(row.badges) ? row.badges : [],
+    };
     return demo
-      ? { ...row, owner: demo.owner || row.owner, status: demo.status || row.status }
-      : row;
+      ? { ...normalizedRow, owner: demo.owner || row.owner, status: demo.status || row.status }
+      : normalizedRow;
   });
   const selectedPoint = rows.find((row) => row.code === S.pointCode);
   const selectedPointDemo = S.pointDemo?.[`${S.projectId}:${S.pointCode}`] || {};

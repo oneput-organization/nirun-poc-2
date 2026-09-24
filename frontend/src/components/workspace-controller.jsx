@@ -5,7 +5,6 @@ import { IrTemplateActions } from "./ir-template-actions";
 import { WorkspaceContext } from "./workspace-context";
 import { tours } from "@/data/tours";
 import { SignIn } from "./screens/SignIn";
-import { RoleSwitcher } from "./layout/RoleSwitcher";
 import { Toast } from "./overlays/Toast";
 import { Projects } from "./screens/Projects";
 import { NewProject } from "./screens/NewProject";
@@ -122,6 +121,13 @@ export class WorkspaceController extends IrTemplateActions {
       aiContext: null,
       ...(extra || {}),
     });
+    if (typeof window !== "undefined") {
+      const setupPath = "/reports/ir-2026/setup";
+      if (s === "report-setup" && window.location.pathname !== setupPath)
+        window.history.pushState({ oneputScreen: s }, "", setupPath);
+      else if (s !== "report-setup" && window.location.pathname === setupPath)
+        window.history.pushState({ oneputScreen: s }, "", "/");
+    }
     window.scrollTo(0, 0);
   }
   goM(s) {
@@ -196,10 +202,15 @@ export class WorkspaceController extends IrTemplateActions {
     const sq = q.get("step") ? Math.max(0, parseInt(q.get("step"), 10) - 1) : 0;
     if (gq) this.tourStart(sq, gq);
     else if (q.get("tour")) this.tourStart(0, "how");
-    else
-      this.setState({
-        tWelcome: localStorage.getItem("oneput-tour-seen") !== "1",
-      });
+    else {
+      let tourSeen = false;
+      try {
+        tourSeen = localStorage.getItem("oneput-tour-seen") === "1";
+      } catch {
+        // Storage can be unavailable in private or restricted browser contexts.
+      }
+      this.setState({ tWelcome: !tourSeen });
+    }
   }
   componentDidUpdate(previousProps, previousState) {
     if (previousState.pointDemo !== this.state.pointDemo) {
@@ -223,11 +234,16 @@ export class WorkspaceController extends IrTemplateActions {
       ["role", "screen", "mscreen", "projectId", "period"].some(
         (k) => previousState[k] !== this.state[k],
       )
-    )
-      sessionStorage.setItem(
-        "oneput-navigation",
-        JSON.stringify({ role, screen, mscreen, projectId, period }),
-      );
+    ) {
+      try {
+        sessionStorage.setItem(
+          "oneput-navigation",
+          JSON.stringify({ role, screen, mscreen, projectId, period }),
+        );
+      } catch {
+        // Navigation persistence is optional; keep the current screen usable.
+      }
+    }
   }
   componentWillUnmount() {
     clearTimeout(this._tt);
@@ -528,7 +544,6 @@ export class WorkspaceController extends IrTemplateActions {
       <WorkspaceContext.Provider value={this.renderVals()}>
         <div data-oneput>
           <SignIn />
-          <RoleSwitcher />
           <Toast />
           <Projects />
           <NewProject />
