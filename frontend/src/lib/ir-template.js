@@ -59,7 +59,34 @@ export function contentFromPoint(point, demo) {
   const content = demo?.answer || latestContribution || demo?.draft || point.value;
   const normalized = content == null ? "" : String(content).trim();
   if (!normalized) return "";
-  return `[${point.code} · ${demo?.templateStatus || point.status || "unreviewed"}] ${normalized}`;
+  const linked = (demo?.linkedPoints || []).filter(Boolean);
+  const linkedNote = linked.length ? `\n\nLinked data point references: ${linked.join(", ")}.` : "";
+  return `[${point.code} · ${demo?.templateStatus || point.status || "unreviewed"}] ${normalized}${linkedNote}`;
+}
+
+export function pointAnswerSections(point, demo) {
+  const text = demo?.answer || (demo?.contributions || []).find((item) => item.text)?.text || demo?.draft || "";
+  const sections = { challenges: [], commitments: [], approach: [], performance: [] };
+  const heading = /^\s*(?:\*\*)?\s*(?:[1-4][.)]?\s*)?([^\n*:]+?)(?:\*\*)?\s*:?\s*$/gm;
+  const matches = [...String(text).matchAll(heading)];
+  const classify = (label) => {
+    const value = label.toLowerCase();
+    if (/challenge|risk|impact|ความท้าทาย|ความเสี่ยง|ผลกระทบ/.test(value)) return "challenges";
+    if (/commitment|target|มุ่งมั่น|เป้าหมาย/.test(value)) return "commitments";
+    if (/approach|management|บริหารจัดการ|แนวทาง/.test(value)) return "approach";
+    if (/performance|result|ผลการดำเนินงาน|ผลลัพธ์/.test(value)) return "performance";
+    return "";
+  };
+  for (let index = 0; index < matches.length; index += 1) {
+    const match = matches[index];
+    const section = classify(match[1]);
+    if (!section) continue;
+    const start = match.index + match[0].length;
+    const end = matches.slice(index + 1).find((next) => classify(next[1]))?.index ?? text.length;
+    const body = String(text).slice(start, end).trim();
+    if (body) sections[section].push(body);
+  }
+  return Object.fromEntries(Object.entries(sections).map(([key, values]) => [key, values.join("\n\n")]));
 }
 
 export function irTrackingCsv(projectName, chapters) {

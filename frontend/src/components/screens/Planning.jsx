@@ -133,6 +133,8 @@ function frameworkText(row) {
 export function Planning() {
   const {
     isSetup,
+    goProjects,
+    goAnchor,
     projectName,
     dataTemplateRows = [],
     pointOwners = [],
@@ -373,6 +375,7 @@ export function Planning() {
           {projectName || "Thaioil Integrated Report 2026"} · Data template
         </strong>
         <nav>
+          <button onClick={goProjects}>Reports</button>
           <button onClick={goOverview}>Setup</button>
           <button className={styles.current}>Data template</button>
           <button onClick={() => openIrTemplate?.()}>Sections</button>
@@ -389,6 +392,7 @@ export function Planning() {
           >
             Final check
           </button>
+          <button onClick={goAnchor}>New report</button>
         </nav>
         <span className={styles.user}>
           TH&nbsp;&nbsp; EN　 🔔 6　 CSSM Admin

@@ -478,10 +478,21 @@ export class WorkspaceController extends IrTemplateActions {
       ],
     }));
   };
+  setPointHelper = (code, helper) => {
+    this.updatePointDemo(code, (current) => ({
+      helper,
+      events: [
+        { id: crypto.randomUUID(), label: helper ? `Helper assigned to ${helper}` : "Helper removed", at: new Date().toISOString() },
+        ...(current.events || []),
+      ],
+    }));
+  };
   setPointStatus = (code, status) => {
     if (!pointStatuses.some((item) => item.value === status)) return;
+    const templateStatus = { open: "Draft", submitted: "Submitted", flagged: "Returned", accepted: "Accepted", locked: "Accepted" }[status];
     this.updatePointDemo(code, (current) => ({
       status,
+      ...(templateStatus ? { templateStatus } : {}),
       events: [
         { id: crypto.randomUUID(), label: `Status changed to ${pointStatuses.find((item) => item.value === status).label}`, at: new Date().toISOString() },
         ...(current.events || []),
@@ -570,10 +581,20 @@ export class WorkspaceController extends IrTemplateActions {
       ],
     }));
   };
+  cancelPointReopen = (code) => {
+    this.updatePointDemo(code, (current) => ({
+      reopenRequest: null,
+      events: [
+        { id: crypto.randomUUID(), label: "Reopen request cancelled", at: new Date().toISOString() },
+        ...(current.events || []),
+      ],
+    }));
+  };
   addPointContribution = (code, text, files) => {
     if (!text.trim() && !files.length) return;
     this.updatePointDemo(code, (current) => ({
       status: "submitted",
+      templateStatus: "Submitted",
       draft: "",
       contributions: [
         {

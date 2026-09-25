@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useWorkspace } from "@/components/workspace-context";
-import { contentFromPoint, irFields, irTrackingCsv } from "@/lib/ir-template";
+import { contentFromPoint, pointAnswerSections, irFields, irTrackingCsv } from "@/lib/ir-template";
 import styles from "./IRContentTemplate.module.css";
 
 const sourceTypes = [
@@ -84,10 +84,12 @@ export function IRContentTemplate() {
     const inputs = chapter.points.map((point) => ({
       point,
       text: contentFromPoint(point, point.demo),
+      sections: pointAnswerSections(point, point.demo),
     }));
     const available = inputs.filter((item) => item.text);
     const topics = chapter.points.map((point) => point.name).join(", ") || "this chapter's material";
     const evidenceLines = available.map(({ point, text }) => `• ${point.code} ${point.name} (${point.status}): ${text}`).join("\n");
+    const suppliedBySection = Object.fromEntries(irFields.map((field) => [field.id, available.flatMap(({ point, sections }) => sections[field.id] ? [`• ${point.code} ${point.name}: ${sections[field.id]}`] : []).join("\n\n")]));
     const missing = inputs.filter((item) => !item.text).map(({ point }) => `${point.code} ${point.name} (${point.status})`);
     const citationLine = available.length
       ? `The initial reporting inputs for ${topics} include ${available.map(({ point }) => point.code).join(", ")}. The owner should confirm the reporting period, calculation method, scope and supporting evidence before publication.`
@@ -98,10 +100,10 @@ export function IRContentTemplate() {
       ? `Recorded reference files for focal-point review: ${sourceNames.join(", ")}. Their contents are not available to this draft generator.`
       : "[FOCAL POINT: add the previous IR report and approved CSSM material as source references before finalizing.]";
     const draft = {
-      challenges: `For ${chapter.name}, the available reporting inputs cover ${topics}. ${available.length ? `The submitted data currently records ${available.map(({ point }) => point.name).join(", ")}.` : "No owner-verified evidence is linked yet."} The related impacts, risks, affected stakeholders and changes during the reporting period still require confirmation from the content owner.${scopeNote}`,
-      commitments: `The current source set does not establish a verified commitment, baseline or time-bound target for ${chapter.name}. [OWNER INPUT REQUIRED: confirm applicable commitments, target values, baseline year, target year and progress; state “none” if no commitment applies.]${scopeNote}`,
-      approach: `The management approach for ${chapter.name} should describe the responsible governance and accountable teams, policies and processes, actions taken, and how effectiveness is monitored. ${citationLine}${scopeNote}`,
-      performance: `${citationLine}\n\nAvailable data-point inputs:\n${evidenceLines || "[OWNER INPUT REQUIRED: no usable data-point responses are available yet.]"}${missing.length ? `\n\nPending data points: ${missing.join("; ")}.` : ""}\n\n${sourceNote}`,
+      challenges: suppliedBySection.challenges || `For ${chapter.name}, the available reporting inputs cover ${topics}. ${available.length ? `The submitted data currently records ${available.map(({ point }) => point.name).join(", ")}.` : "No owner-verified evidence is linked yet."} The related impacts, risks, affected stakeholders and changes during the reporting period still require confirmation from the content owner.${scopeNote}`,
+      commitments: suppliedBySection.commitments || `The current source set does not establish a verified commitment, baseline or time-bound target for ${chapter.name}. [OWNER INPUT REQUIRED: confirm applicable commitments, target values, baseline year, target year and progress; state “none” if no commitment applies.]${scopeNote}`,
+      approach: suppliedBySection.approach || `The management approach for ${chapter.name} should describe the responsible governance and accountable teams, policies and processes, actions taken, and how effectiveness is monitored. ${citationLine}${scopeNote}`,
+      performance: `${suppliedBySection.performance || `${citationLine}\n\nAvailable data-point inputs:\n${evidenceLines || "[OWNER INPUT REQUIRED: no usable data-point responses are available yet.]"}`}${missing.length ? `\n\nPending data points: ${missing.join("; ")}.` : ""}\n\n${sourceNote}`,
     };
     setAiPreview(draft);
   }

@@ -51,6 +51,8 @@ export function DataPoint() {
     addPointContribution,
     addPointMapping,
     closePoint,
+    goProjects,
+    goSetup,
     createPointIntakeLink,
     generatePointDraft,
     isClosedPeriod,
@@ -70,6 +72,7 @@ export function DataPoint() {
     selectedPointDemo: demo,
     selectedPointStatus: status,
     setPointOwner,
+    setPointHelper,
     setPointStatus,
     suggestedMappings,
     revokePointIntakeLink,
@@ -80,6 +83,7 @@ export function DataPoint() {
     linkPointData,
     requestPointReopen,
     decidePointReopen,
+    cancelPointReopen,
     dataPointRows,
     pointCodes,
     openPoint,
@@ -322,6 +326,7 @@ export function DataPoint() {
     );
   };
   const statusText =
+    (demo?.reopenRequest?.status === "pending" && roleMember ? "Reopen requested" : "") ||
     demo?.templateStatus ||
     {
       open: "Draft",
@@ -341,10 +346,14 @@ export function DataPoint() {
         <button className={styles.logo} onClick={closePoint}>
           <img src="/assets/nirun_v1.png" alt="Nirun" />
         </button>
-        <span className={styles.reportName}>
+        <button className={styles.headerNav} onClick={goProjects}>Reports</button>
+        <button className={styles.headerNav} onClick={goSetup}>Setup</button>
+        <button className={styles.headerNav} onClick={closePoint}>Data template</button>
+        <button className={styles.headerNav} onClick={() => openIrTemplate?.(point.section)}>Sections</button>
+        <button className={styles.reportName} onClick={goSetup} title="Return to this report's data template">
           {projectName || "Thaioil Integrated Report 2026"} ·{" "}
           {periodName || "FY2026"}
-        </span>
+        </button>
         <span className={styles.topSpacer} />
         <button>TH</button>
         <button>EN</button>
@@ -410,7 +419,7 @@ export function DataPoint() {
                 {statusText}
               </span>
               <span className={styles.due}>
-                Due {point.due || "29 Jan 2027"} · 2 days left
+                Due {formatDate(demo?.dueDate || point.due_date || point.due)} · 2 days left
               </span>
             </div>
           </div>
@@ -466,16 +475,10 @@ export function DataPoint() {
           </div>
           <div>
             <label>Helper · ผู้ช่วยกรอก</label>
-            <b>
-              {point.owner?.replace(/^⚡\s*/, "") || "Unassigned"} teammate{" "}
-              <button
-                onClick={() =>
-                  tell("Helper invitation is mocked in this prototype.")
-                }
-              >
-                + Add helper
-              </button>
-            </b>
+            {roleMember || isClosedPeriod ? <b>{demo?.helper || "No helper assigned"}</b> : <select aria-label="Helper" value={demo?.helper || ""} onChange={(event) => setPointHelper?.(point.code, event.target.value)}>
+              <option value="">No helper assigned</option>
+              {pointOwners.map((person) => <option key={person}>{person}</option>)}
+            </select>}
           </div>
           <div>
             <label>CSSM reviewer · ผู้ตรวจสอบ</label>
@@ -1413,12 +1416,10 @@ export function DataPoint() {
         <div>
           {roleMember ? (
             point.status === "accepted" || point.status === "locked" ? (
-              <button
+              demo?.reopenRequest?.status === "pending" ? <button className={styles.secondary} onClick={() => cancelPointReopen?.(point.code)}>Cancel reopen request · ยกเลิกคำขอ</button> : <button
                 className={styles.primary}
                 onClick={() => setReopenModal(true)}
-              >
-                Request to reopen · ขอเปิดแก้ไข
-              </button>
+              >Request to reopen · ขอเปิดแก้ไข</button>
             ) : point.status === "submitted" ? (
               <button
                 className={styles.secondary}
