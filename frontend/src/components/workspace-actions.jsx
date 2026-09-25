@@ -64,7 +64,7 @@ export class WorkspaceActions extends Component {
             ? {
                 ...saved,
                 screen: saved.screen === "anchor" ? "report-setup" : saved.screen,
-                aiOpen: saved.screen === "setup",
+                aiOpen: false,
               }
             : {}),
         },

@@ -117,7 +117,9 @@ export class WorkspaceController extends IrTemplateActions {
       rowMenu: null,
       modal: null,
       cell: null,
-      aiOpen: s === "setup",
+      // Keep the workspace assistant closed on navigation. It remains
+      // available through its explicit launcher when someone needs it.
+      aiOpen: false,
       aiContext: null,
       ...(extra || {}),
     });
