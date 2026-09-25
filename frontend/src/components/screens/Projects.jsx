@@ -34,8 +34,8 @@ export function Projects() {
           >
             <div className="ui-24">
               <img
-                src={"/assets/oneput-logo.png"}
-                alt={"Oneput AI"}
+                src={"/assets/nirun_v1.png"}
+                alt={"Nirun"}
                 className="ui-25"
               />
               <div className="ui-26">

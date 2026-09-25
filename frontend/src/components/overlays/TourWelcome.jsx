@@ -10,8 +10,8 @@ export function TourWelcome() {
           <div className="ui-651"></div>
           <div className="ui-652">
             <img
-              src={"/assets/oneput-logo.png"}
-              alt={"Oneput"}
+              src={"/assets/nirun_v1.png"}
+              alt={"Nirun"}
               className="ui-653"
             />
             <div className="ui-654">{"See how Oneput works"}</div>

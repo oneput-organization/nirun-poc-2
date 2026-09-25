@@ -46,7 +46,7 @@ export function PublicIntakeForm({ token }) {
 
   return (
     <main className={styles.page}>
-      <header className={styles.brand}><img src="/assets/oneput-logo.png" alt="Oneput" /><span>Secure data collection</span></header>
+      <header className={styles.brand}><img src="/assets/nirun_v1.png" alt="Nirun" /><span>Secure data collection</span></header>
       <div className={styles.container}>
         {loading ? <section className={styles.card}><p>Loading the form…</p></section> : null}
         {!loading && !form ? <section className={styles.card}>

@@ -1,6 +1,6 @@
 .page{min-height:100dvh;background:#f4f7fc;color:#192b45;font:13px Inter,Arial,sans-serif;padding-bottom:82px}
 .topbar{height:58px;display:flex;align-items:center;gap:18px;padding:0 28px;background:#fff;border-bottom:1px solid #dce5f1;position:sticky;top:0;z-index:5}
-.logo{border:0;background:none;color:#225cc5;font-size:21px;font-weight:800;letter-spacing:-.7px;cursor:pointer}
+.logo{border:0;background:none;color:#225cc5;font-size:21px;font-weight:800;letter-spacing:-.7px;cursor:pointer;padding:0}.logo img{display:block;width:91px;height:auto}
 .reportName{font-weight:600;color:#334765}.topSpacer{flex:1}.topbar>button:not(.logo){border:0;background:#fff;color:#5d6c82;cursor:pointer;font:inherit}.bell{position:relative;font-size:18px!important}.bell i{position:absolute;top:-5px;right:-5px;font:9px Arial;background:#2d67d3;color:#fff;border-radius:10px;padding:2px 4px}.user{color:#5c6b80;font-size:12px}
 .wrap{max-width:1560px;margin:auto;padding:20px 28px 34px}.crumb{display:flex;gap:8px;align-items:center;margin-bottom:10px;color:#73829a;font-size:11px}.crumb span{color:#afbac9}.crumb button,.back{border:0;background:none;padding:0;color:#2861c2;font:inherit;cursor:pointer}
 .backline{display:flex;justify-content:space-between;align-items:center;margin:7px 0 13px}.back{color:#63748c}.paging{display:flex;gap:8px}.paging button,.heroActions button{background:#fff;border:1px solid #d8e2ef;border-radius:5px;color:#405675;padding:7px 11px;font:inherit;cursor:pointer}.paging button:disabled{opacity:.45;cursor:default}

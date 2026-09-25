@@ -45,7 +45,7 @@ export function AssistantPanel() {
             }}
           >
             <div className="ui-616">
-              <img src={"/assets/oneput-icon.png"} alt="" className="ui-617" />
+              <img src={"/assets/nirun_v1.png"} alt="" className="ui-617" />
               <div className="ui-47">
                 <div className="ui-618">{"Planning this project"}</div>
                 <div className="ui-619">

@@ -128,7 +128,10 @@ export class WorkspaceActions extends Component {
   openProject = (project) => {
     this.request(async () => {
       await this.refresh(project.id);
-      this.go(project.s === "draft" ? "setup" : "overview", {
+      const annualReport =
+        /annual report/i.test(`${project.framework || ""} ${project.name || ""}`) ||
+        /^fy\d{4}$/i.test(project.id || "");
+      this.go(project.s === "draft" || annualReport ? "setup" : "overview", {
         period:
           project.id === "fy2024"
             ? "FY2024"
@@ -467,7 +470,7 @@ export class WorkspaceActions extends Component {
       }
       await api(this.projectPath(), { method: "PATCH", body: { s: "live" } });
       await this.refresh();
-      this.go("overview");
+      this.go("setup");
       this.showToast("Project launched. Collection is live.");
     });
   submitActionForm = (values) =>

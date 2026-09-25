@@ -11,8 +11,8 @@ export function SignIn() {
             <div className="ui-2">
               <div className="ui-3">
                 <img
-                  src={"/assets/oneput-logo.png"}
-                  alt={"Oneput AI"}
+                  src={"/assets/nirun_v1.png"}
+                  alt={"Nirun"}
                   className="ui-4"
                 />
                 <p className="ui-5">

@@ -366,7 +366,7 @@ export function Planning() {
     <main className={styles.page} data-screen-label="Data template">
       <div className={styles.topbar}>
         <button className={styles.logo} onClick={goOverview}>
-          Nirun
+          <img src="/assets/nirun_v1.png" alt="Nirun" />
         </button>
         <span>Thaioil workspace</span>
         <strong>

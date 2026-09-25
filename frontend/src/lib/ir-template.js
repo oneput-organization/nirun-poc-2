@@ -52,10 +52,14 @@ export function emptyIrChapter() {
 }
 
 export function contentFromPoint(point, demo) {
-  const note = (demo?.contributions || []).find((entry) => entry.text)?.text;
-  const content = demo?.draft || point.value || note;
-  if (!content?.trim()) return "";
-  return `[${point.code} · ${point.status || "unreviewed"}] ${content.trim()}`;
+  const latestContribution = (demo?.contributions || []).find((entry) => entry.text)?.text;
+  // The report-ready answer is saved by the Data Point editor. Prefer it over
+  // generated drafts and raw metric values so owner-reviewed narrative is the
+  // material carried into the IR template.
+  const content = demo?.answer || latestContribution || demo?.draft || point.value;
+  const normalized = content == null ? "" : String(content).trim();
+  if (!normalized) return "";
+  return `[${point.code} · ${demo?.templateStatus || point.status || "unreviewed"}] ${normalized}`;
 }
 
 export function irTrackingCsv(projectName, chapters) {

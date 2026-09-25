@@ -83,7 +83,7 @@ export function IRContentTemplate() {
   function draftWithAi() {
     const inputs = chapter.points.map((point) => ({
       point,
-      text: point.demo?.draft?.trim() || point.value?.trim() || (point.demo?.contributions || []).map((item) => item.text?.trim()).filter(Boolean).join(" "),
+      text: contentFromPoint(point, point.demo),
     }));
     const available = inputs.filter((item) => item.text);
     const topics = chapter.points.map((point) => point.name).join(", ") || "this chapter's material";

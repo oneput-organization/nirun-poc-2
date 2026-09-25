@@ -1,4 +1,17 @@
 /* cyrillic-ext */
+img[src$="/assets/nirun_v1.png"] {
+  object-fit: contain;
+  filter: brightness(0) saturate(100%) invert(19%) sepia(22%) saturate(1770%) hue-rotate(178deg) brightness(91%) contrast(92%);
+}
+
+.ui-611[src$="/assets/nirun_v1.png"],
+.ui-615[src$="/assets/nirun_v1.png"],
+.ui-617[src$="/assets/nirun_v1.png"],
+.ui-688[src$="/assets/nirun_v1.png"] {
+  border-radius: 0;
+  object-fit: contain;
+}
+
 @font-face {
   font-family: "IBM Plex Mono";
   font-style: normal;

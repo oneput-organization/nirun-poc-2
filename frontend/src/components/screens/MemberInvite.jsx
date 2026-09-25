@@ -62,7 +62,7 @@ export function MemberInvite() {
                   }}
                 >
                   <img
-                    src={"/assets/oneput-icon.png"}
+                    src={"/assets/nirun_v1.png"}
                     alt=""
                     className="ui-476"
                   />

@@ -8,8 +8,8 @@ export function AssistantButton() {
         <>
           <button onClick={openAiPlain} title={"Ask Oneput"} className="ui-614">
             <img
-              src={"/assets/oneput-icon.png"}
-              alt={"Ask Oneput"}
+              src={"/assets/nirun_v1.png"}
+              alt={"Ask Nirun"}
               className="ui-615"
             />
           </button>

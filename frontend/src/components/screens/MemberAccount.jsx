@@ -10,8 +10,8 @@ export function MemberAccount() {
           <div data-screen-label={"Account"} className="ui-472">
             <div className="ui-499">
               <img
-                src={"/assets/oneput-logo.png"}
-                alt={"Oneput"}
+                src={"/assets/nirun_v1.png"}
+                alt={"Nirun"}
                 className="ui-491"
               />
               <div data-tour={"m-account"} className="ui-492">

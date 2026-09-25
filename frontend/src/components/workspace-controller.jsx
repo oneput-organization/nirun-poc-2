@@ -520,6 +520,56 @@ export class WorkspaceController extends IrTemplateActions {
     }));
     this.showToast("Draft saved.");
   };
+  setPointCheck = (code, checkId, state) => {
+    this.updatePointDemo(code, (current) => ({
+      checkedItems: { ...(current.checkedItems || {}), [checkId]: state },
+      events: [
+        { id: crypto.randomUUID(), label: `Review check ${state}`, detail: checkId, at: new Date().toISOString() },
+        ...(current.events || []),
+      ],
+    }));
+  };
+  addPointComment = (code, text) => {
+    if (!text?.trim()) return;
+    const by = this.state.role === "member" ? "HR Owner" : "CSSM Admin";
+    this.updatePointDemo(code, (current) => ({
+      comments: [{ id: crypto.randomUUID(), text: text.trim(), by, at: new Date().toISOString() }, ...(current.comments || [])],
+      events: [
+        { id: crypto.randomUUID(), label: `${by} added a review comment`, at: new Date().toISOString() },
+        ...(current.events || []),
+      ],
+    }));
+  };
+  linkPointData = (code, linkedCode) => {
+    if (!linkedCode || linkedCode === code) return;
+    this.updatePointDemo(code, (current) => ({
+      linkedPoints: [...new Set([...(current.linkedPoints || []), linkedCode])],
+      events: [
+        { id: crypto.randomUUID(), label: `Linked data point ${linkedCode}`, at: new Date().toISOString() },
+        ...(current.events || []),
+      ],
+    }));
+  };
+  requestPointReopen = (code, reason) => {
+    if (!reason?.trim()) return;
+    this.updatePointDemo(code, (current) => ({
+      reopenRequest: { reason: reason.trim(), status: "pending", by: "HR Owner", at: new Date().toISOString() },
+      events: [
+        { id: crypto.randomUUID(), label: "Reopen requested", detail: reason.trim(), at: new Date().toISOString() },
+        ...(current.events || []),
+      ],
+    }));
+  };
+  decidePointReopen = (code, approved) => {
+    this.updatePointDemo(code, (current) => ({
+      reopenRequest: current.reopenRequest ? { ...current.reopenRequest, status: approved ? "approved" : "declined", decidedAt: new Date().toISOString() } : null,
+      ...(approved ? { status: "flagged", templateStatus: "Returned" } : {}),
+      events: [
+        { id: crypto.randomUUID(), label: approved ? "CSSM approved reopen request" : "CSSM declined reopen request", at: new Date().toISOString() },
+        ...(current.events || []),
+      ],
+    }));
+  };
   addPointContribution = (code, text, files) => {
     if (!text.trim() && !files.length) return;
     this.updatePointDemo(code, (current) => ({

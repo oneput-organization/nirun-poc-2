@@ -19,8 +19,8 @@ export function MemberProjects() {
           <div data-screen-label={"Member projects"} className="ui-508">
             <div className="ui-24">
               <img
-                src={"/assets/oneput-logo.png"}
-                alt={"Oneput"}
+                src={"/assets/nirun_v1.png"}
+                alt={"Nirun"}
                 className="ui-25"
               />
               <div className="ui-509">

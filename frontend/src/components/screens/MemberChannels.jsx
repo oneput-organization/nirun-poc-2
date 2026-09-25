@@ -10,8 +10,8 @@ export function MemberChannels() {
           <div data-screen-label={"Choose channel"} className="ui-472">
             <div className="ui-490">
               <img
-                src={"/assets/oneput-logo.png"}
-                alt={"Oneput"}
+                src={"/assets/nirun_v1.png"}
+                alt={"Nirun"}
                 className="ui-491"
               />
               <div className="ui-492">

@@ -36,7 +36,7 @@ export function GuideLauncher() {
             title={"Open the guides"}
             className="ui-687 hover-2"
           >
-            <img src={"/assets/oneput-icon.png"} alt="" className="ui-688" />
+            <img src={"/assets/nirun_v1.png"} alt="" className="ui-688" />
             {"Guide "}
           </button>
         </>

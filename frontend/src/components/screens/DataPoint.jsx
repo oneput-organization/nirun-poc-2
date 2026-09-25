@@ -75,11 +75,18 @@ export function DataPoint() {
     revokePointIntakeLink,
     savePointIntakeQuestions,
     savePointNarrative,
+    setPointCheck,
+    addPointComment,
+    linkPointData,
+    requestPointReopen,
+    decidePointReopen,
+    dataPointRows,
     pointCodes,
     openPoint,
     setPointDueDate,
   } = useWorkspace();
   const [answer, setAnswer] = useState("");
+  const [savedAnswer, setSavedAnswer] = useState("");
   const [files, setFiles] = useState([]);
   const [activeTab, setActiveTab] = useState("Guidance");
   const [editorLanguage, setEditorLanguage] = useState("Thai");
@@ -109,21 +116,21 @@ export function DataPoint() {
   const [aiSuggestion, setAiSuggestion] = useState("");
   const [showChecks, setShowChecks] = useState(false);
   const [comment, setComment] = useState("");
-  const [comments, setComments] = useState([]);
   const [submitConfirm, setSubmitConfirm] = useState(false);
   const [toast, setToast] = useState("");
   const [reopenModal, setReopenModal] = useState(false);
   const [reopenReason, setReopenReason] = useState("");
+  const [linkedCode, setLinkedCode] = useState("");
+  const [reviewNote, setReviewNote] = useState("");
+  const [returnModal, setReturnModal] = useState(false);
   useEffect(() => setOrigin(window.location.origin), []);
   useEffect(() => {
     setQuestionDraft(pointIntakeQuestions || []);
   }, [point?.code, pointIntakeQuestions]);
   useEffect(() => {
-    setAnswer(
-      demo?.answer ||
-        demo?.draft ||
-        (point?.value == null ? "" : String(point.value)),
-    );
+    const saved = demo?.answer || demo?.draft || (point?.value == null ? "" : String(point.value));
+    setAnswer(saved);
+    setSavedAnswer(saved);
     setMetricDraft({
       period: "FY2026",
       dimension_values: {},
@@ -135,7 +142,7 @@ export function DataPoint() {
       confirmed_statement: false,
       input_unit: point?.unit || "",
     });
-  }, [point?.code, point?.unit]);
+  }, [point?.code, point?.unit, demo?.answer, demo?.draft, point?.value]);
   if (!isDataPoint) return null;
   if (!point)
     return (
@@ -150,7 +157,7 @@ export function DataPoint() {
 
   const readOnly =
     isClosedPeriod ||
-    (roleMember && ["submitted", "accepted", "locked"].includes(point.status));
+    (roleMember && ["submitted", "accepted", "locked"].includes(point.status) && demo?.reopenRequest?.status !== "approved");
   const isComputed =
     point.collection_mode === "computed" || !!point.derived_from;
   const isImportOnly = point.collection_mode === "import_only";
@@ -169,6 +176,10 @@ export function DataPoint() {
     JSON.stringify(questionDraft) !==
     JSON.stringify(pointIntakeQuestions || []);
   const mappings = demo?.mappings || [];
+  const comments = demo?.comments || [];
+  const linkedPoints = (demo?.linkedPoints || []).map((code) => dataPointRows?.find((row) => row.code === code)).filter(Boolean);
+  const isDirty = answer !== savedAnswer;
+  const checkStates = demo?.checkedItems || {};
   const activity = [
     ...(demo?.events || []),
     ...(point.history || []).map((event, index) => ({
@@ -247,8 +258,9 @@ export function DataPoint() {
   };
   const submitAnswer = () => {
     if (!answer.trim() && !files.length) return;
+    savePointNarrative?.(point.code, answer);
     addPointContribution(point.code, answer, files);
-    setAnswer("");
+    setSavedAnswer(answer);
     setFiles([]);
     setSubmitConfirm(false);
     tell("Sent to CSSM. They got an email.");
@@ -291,7 +303,15 @@ export function DataPoint() {
   };
   const saveAnswer = () => {
     savePointNarrative?.(point.code, answer);
+    setSavedAnswer(answer);
     tell("Draft saved · บันทึกฉบับร่างแล้ว");
+  };
+  const addLinkedPoint = (code) => {
+    if (!code) return;
+    linkPointData?.(point.code, code);
+    const linked = dataPointRows?.find((row) => row.code === code);
+    if (linked) setAnswer((value) => `${value}${value.trim() ? " " : ""}[${code}: ${linked.name}]`);
+    setLinkedCode("");
   };
   const review = (value) => {
     setPointStatus(point.code, value);
@@ -319,7 +339,7 @@ export function DataPoint() {
     <main className={styles.page} data-screen-label="Data point">
       <header className={styles.topbar}>
         <button className={styles.logo} onClick={closePoint}>
-          Nirun
+          <img src="/assets/nirun_v1.png" alt="Nirun" />
         </button>
         <span className={styles.reportName}>
           {projectName || "Thaioil Integrated Report 2026"} ·{" "}
@@ -534,8 +554,7 @@ export function DataPoint() {
               <div>
                 <span>Answer · คำตอบ</span>
                 <small>
-                  Autosave{" "}
-                  {demo?.answer ? "· Saved just now" : "· Unsaved changes"}
+                  {isDirty ? "· Unsaved changes" : demo?.answer ? "· Saved" : "· Not saved yet"}
                 </small>
               </div>
               <div className={styles.lang}>
@@ -656,6 +675,7 @@ export function DataPoint() {
                     <button
                       onClick={() => {
                         setAnswer((text) => text.replaceAll("2025", "2026"));
+                        setPointCheck?.(point.code, String(i), "updated");
                         tell(
                           "Updated the year in the draft; review before saving.",
                         );
@@ -663,9 +683,10 @@ export function DataPoint() {
                     >
                       Update
                     </button>
-                    <button onClick={() => tell("Marked as still valid.")}>
+                    <button onClick={() => { setPointCheck?.(point.code, String(i), "valid"); tell("Marked as still valid."); }}>
                       Still valid
                     </button>
+                    {checkStates[String(i)] && <small>Marked {checkStates[String(i)]}</small>}
                   </article>
                 ))}
               </div>
@@ -685,7 +706,7 @@ export function DataPoint() {
                 <h3>Comments · ความคิดเห็น</h3>
                 <span>Open review thread</span>
               </div>
-              <article>
+              {!comments.length && <article>
                 <b>CSSM Reviewer 2 · 24 Jan 2027, 14:10</b>
                 <p>
                   Please add how we measure whether the programs work. S&P asks
@@ -694,11 +715,11 @@ export function DataPoint() {
                 <button onClick={() => setComment("@CSSM Reviewer 2 ")}>
                   Reply
                 </button>
-              </article>
-              {comments.map((item, i) => (
-                <article key={i}>
-                  <b>{roleMember ? "HR Owner" : "CSSM Admin"} · just now</b>
-                  <p>{item}</p>
+              </article>}
+              {comments.map((item) => (
+                <article key={item.id}>
+                  <b>{item.by} · {formatDate(item.at)}</b>
+                  <p>{item.text}</p>
                 </article>
               ))}
               <div className={styles.commentEntry}>
@@ -710,7 +731,7 @@ export function DataPoint() {
                 <button
                   onClick={() => {
                     if (comment.trim()) {
-                      setComments((list) => [...list, comment.trim()]);
+                      addPointComment?.(point.code, comment);
                       setComment("");
                       tell("Comment added.");
                     }
@@ -1082,18 +1103,29 @@ export function DataPoint() {
                     </article>
                   );
                 })}
-                <button
-                  className={styles.secondary}
-                  onClick={() =>
-                    tell("Choose a datapoint to link it into the narrative.")
-                  }
-                >
-                  + Link another data point
+                {linkedPoints.map((linked) => (
+                  <article className={styles.target} key={linked.code}>
+                    <b>{linked.code} · {linked.name}</b>
+                    <span>{linked.value ?? linked.metric_values?.[0]?.display_text ?? "No approved value yet"} {linked.unit || ""}</span>
+                    <small>{linked.status} · Linked into this narrative</small>
+                  </article>
+                ))}
+                <div className={styles.mapForm}>
+                  <select value={linkedCode} onChange={(event) => setLinkedCode(event.target.value)}>
+                    <option value="">Choose a report data point</option>
+                    {(dataPointRows || []).filter((row) => row.code !== point.code && !(demo?.linkedPoints || []).includes(row.code)).map((row) => (
+                      <option key={row.code} value={row.code}>{row.code} · {row.name}</option>
+                    ))}
+                  </select>
+                  <button className={styles.secondary} disabled={!linkedCode || readOnly} onClick={() => addLinkedPoint(linkedCode)}>Link to narrative</button>
+                </div>
+                <button className={styles.secondary} disabled={!linkedCode || readOnly} onClick={() => addLinkedPoint(linkedCode)}>
+                  # Insert linked number
                 </button>
                 <p className={styles.note}>
                   If a linked number changes, the approved value should update
-                  wherever it is used. Narrative linking is previewed in this
-                  prototype.
+                  wherever it is used. Linked values stay traceable to their
+                  source data point and status.
                 </p>
               </div>
             )}
@@ -1176,8 +1208,8 @@ export function DataPoint() {
                   <p>No activity has been recorded for this point yet.</p>
                 )}
                 {comments.length > 0 && <h3>Recent comments</h3>}
-                {comments.map((item, i) => (
-                  <p key={i}>{item}</p>
+                {comments.map((item) => (
+                  <p key={item.id}>{item.by}: {item.text}</p>
                 ))}
               </div>
             )}
@@ -1407,9 +1439,16 @@ export function DataPoint() {
             )
           ) : (
             <>
+              {demo?.reopenRequest?.status === "pending" && (
+                <span className={styles.note}>Reopen requested: {demo.reopenRequest.reason}</span>
+              )}
+              {demo?.reopenRequest?.status === "pending" && <>
+                <button className={styles.secondary} onClick={() => decidePointReopen?.(point.code, false)}>Decline reopen</button>
+                <button className={styles.secondary} onClick={() => decidePointReopen?.(point.code, true)}>Approve reopen</button>
+              </>}
               <button
                 className={styles.return}
-                onClick={() => review("flagged")}
+                onClick={() => setReturnModal(true)}
               >
                 Return with comments
               </button>
@@ -1535,13 +1574,35 @@ export function DataPoint() {
                 className={styles.primary}
                 disabled={!reopenReason.trim()}
                 onClick={() => {
+                  requestPointReopen?.(point.code, reopenReason);
                   setReopenModal(false);
                   setReopenReason("");
-                  tell("Reopen request sent to CSSM.");
+                  tell("Reopen request saved and sent to CSSM.");
                 }}
               >
                 Send request
               </button>
+            </div>
+          </section>
+        </div>
+      )}
+      {returnModal && (
+        <div className={styles.modalScrim}>
+          <section className={styles.modal}>
+            <h2>Return to owner with comments</h2>
+            <label>
+              Reviewer comment
+              <textarea value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} required placeholder="Explain what the owner needs to correct or clarify" />
+            </label>
+            <div>
+              <button className={styles.secondary} onClick={() => setReturnModal(false)}>Cancel</button>
+              <button className={styles.return} disabled={!reviewNote.trim()} onClick={() => {
+                addPointComment?.(point.code, reviewNote);
+                setPointStatus(point.code, "flagged");
+                setReviewNote("");
+                setReturnModal(false);
+                tell("Returned to the owner with the review comment.");
+              }}>Return to owner</button>
             </div>
           </section>
         </div>

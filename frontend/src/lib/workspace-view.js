@@ -17,10 +17,7 @@ export function buildWorkspaceView() {
     goProjects: () => this.go("projects"),
     goAnchor: () => this.go("report-setup"),
     goSetup: () => this.go("setup"),
-    goOverview: () =>
-      S.projectId === "fy2024"
-        ? this.openProject({ id: "fy2025", s: "live" })
-        : this.go("overview"),
+    goOverview: () => this.go("setup"),
     goCalendar: () => this.go("calendar"),
     goMembers: () => this.go("members"),
     goExport: () => this.go("export"),
@@ -1405,7 +1402,7 @@ export function buildWorkspaceView() {
   // ---------- header ----------
   const screenLabels = {
     "report-setup": "Set up your report",
-    setup: "Planning",
+    setup: "Data template",
     overview: "Overview",
     calendar: "Calendar",
     members: "People and systems",
@@ -2434,6 +2431,12 @@ export function buildWorkspaceView() {
     setPointTemplateStatus: this.setPointTemplateStatus,
     setPointDueDate: this.setPointDueDate,
     savePointNarrative: this.savePointNarrative,
+    setPointCheck: this.setPointCheck,
+    addPointComment: this.addPointComment,
+    linkPointData: this.linkPointData,
+    requestPointReopen: this.requestPointReopen,
+    decidePointReopen: this.decidePointReopen,
+    dataPointRows: rows,
     addPointContribution: this.addPointContribution,
     addPointMapping: this.addPointMapping,
     generatePointDraft: this.generatePointDraft,
