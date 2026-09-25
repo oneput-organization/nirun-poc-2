@@ -510,6 +510,16 @@ export class WorkspaceController extends IrTemplateActions {
       ],
     }));
   };
+  savePointNarrative = (code, answer) => {
+    this.updatePointDemo(code, (current) => ({
+      answer,
+      events: [
+        { id: crypto.randomUUID(), label: "Answer draft saved", at: new Date().toISOString() },
+        ...(current.events || []),
+      ],
+    }));
+    this.showToast("Draft saved.");
+  };
   addPointContribution = (code, text, files) => {
     if (!text.trim() && !files.length) return;
     this.updatePointDemo(code, (current) => ({

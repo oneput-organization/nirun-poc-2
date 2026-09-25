@@ -2433,6 +2433,7 @@ export function buildWorkspaceView() {
     setPointStatus: this.setPointStatus,
     setPointTemplateStatus: this.setPointTemplateStatus,
     setPointDueDate: this.setPointDueDate,
+    savePointNarrative: this.savePointNarrative,
     addPointContribution: this.addPointContribution,
     addPointMapping: this.addPointMapping,
     generatePointDraft: this.generatePointDraft,
